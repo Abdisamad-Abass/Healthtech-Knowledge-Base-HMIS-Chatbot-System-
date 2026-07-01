@@ -1,7 +1,5 @@
 # 🏥 Healthcare Knowledge Base & HMIS Chatbot System
 
-![Project Banner](docs/images/banner.png)
-
 A production-ready **Healthcare Knowledge Base (KB) Platform** integrated with an **AI-powered HMIS Chatbot Assistant**.
 
 The platform provides a centralized repository for:
@@ -161,8 +159,6 @@ Features:
 ---
 
 # 🏗 System Architecture
-
-![System Architecture](docs/images/system-architecture.png)
 
 ## High-Level Architecture Overview
 
@@ -1213,7 +1209,6 @@ healthcare-kb-chatbot/
 
 # 🗄 Database ERD
 
-![ERD Diagram](docs/images/erd.png)
 
 Entities:
 
@@ -1229,7 +1224,7 @@ Entities:
 
 # 🔌 API Documentation
 
-![API Documentation](docs/images/api-documentation.png)
+[Download API Documentation PDF](docs/HealthTech Knowledge Base AI Assistant API Documentation.pdf)
 
 ## Authentication
 
