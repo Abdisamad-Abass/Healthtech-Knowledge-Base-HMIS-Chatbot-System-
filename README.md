@@ -1224,7 +1224,7 @@ Entities:
 
 # 🔌 API Documentation
 
-[Download API Documentation PDF](docs/HealthTech Knowledge Base AI Assistant API Documentation.pdf)
+[Download API Documentation PDF](docs/HealthTech%20Knowledge%20Base%20AI%20Assistant%20API%20Documentation.pdf)
 
 ## Authentication
 
