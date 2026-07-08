@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
 
 export default function Editor() {
   const [categories, setCategories] = useState([]);
 
   const [form, setForm] = useState({
-    title: "",
-    type: "FAQ",
-    category: "",
-    product: "",
-    tags: "",
-    content: "",
+    title: '',
+    type: 'FAQ',
+    category: '',
+    product: '',
+    tags: '',
+    content: '',
   });
 
   useEffect(() => {
@@ -20,13 +20,13 @@ export default function Editor() {
   }, []);
 
   const loadCategories = async () => {
-    const res = await api.get("/categories");
+    const res = await api.get('/categories');
     setCategories(res.data);
   };
 
   const save = async () => {
     if (!form.title || !form.content) {
-      alert("Title and content required");
+      alert('Title and content required');
       return;
     }
 
@@ -37,59 +37,34 @@ export default function Editor() {
       product: form.product,
       content: form.content,
       tags: form.tags
-        .split(",")
+        .split(',')
         .map((x) => x.trim())
         .filter(Boolean),
     };
 
-    await api.post("/articles", payload);
+    await api.post('/articles', payload);
 
-    alert("Article saved");
+    alert('Article saved');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-100 to-indigo-100 p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-800">
-            Knowledge Base Editor
-          </h1>
+          <h1 className="text-4xl font-extrabold text-gray-800">Knowledge Base Editor</h1>
 
-          <p className="text-gray-500 mt-2">
-            Create and manage healthcare knowledge articles
-          </p>
+          <p className="mt-2 text-gray-500">Create and manage healthcare knowledge articles</p>
         </div>
 
-        <div
-          className="
-          bg-white
-          rounded-3xl
-          shadow-xl
-          border
-          border-gray-200
-          p-8
-        "
-        >
-          <div className="grid md:grid-cols-2 gap-6">
+        <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-xl">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Title */}
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">
-                Article Title
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Article Title</label>
 
               <input
-                className="
-                w-full
-                mt-2
-                rounded-xl
-                border
-                p-4
-                outline-none
-                focus:ring-2
-                focus:ring-blue-500
-                transition
-                "
+                className="mt-2 w-full rounded-xl border p-4 transition outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter article title"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -98,20 +73,10 @@ export default function Editor() {
 
             {/* Type */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Article Type
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Article Type</label>
 
               <select
-                className="
-                w-full
-                mt-2
-                rounded-xl
-                border
-                p-4
-                focus:ring-2
-                focus:ring-blue-500
-                "
+                className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
               >
@@ -126,20 +91,10 @@ export default function Editor() {
 
             {/* Category */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Category
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Category</label>
 
               <select
-                className="
-                w-full
-                mt-2
-                rounded-xl
-                border
-                p-4
-                focus:ring-2
-                focus:ring-blue-500
-                "
+                className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
               >
@@ -155,20 +110,10 @@ export default function Editor() {
 
             {/* Product */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Product Module
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Product Module</label>
 
               <input
-                className="
-                w-full
-                mt-2
-                rounded-xl
-                border
-                p-4
-                focus:ring-2
-                focus:ring-blue-500
-                "
+                className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
                 placeholder="Example: HMIS"
                 value={form.product}
                 onChange={(e) => setForm({ ...form, product: e.target.value })}
@@ -177,20 +122,10 @@ export default function Editor() {
 
             {/* Tags */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Tags
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Tags</label>
 
               <input
-                className="
-                w-full
-                mt-2
-                rounded-xl
-                border
-                p-4
-                focus:ring-2
-                focus:ring-blue-500
-                "
+                className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
                 placeholder="HMIS,password,login"
                 value={form.tags}
                 onChange={(e) => setForm({ ...form, tags: e.target.value })}
@@ -199,23 +134,10 @@ export default function Editor() {
 
             {/* Content */}
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">
-                Article Content
-              </label>
+              <label className="text-sm font-semibold text-gray-700">Article Content</label>
 
               <textarea
-                className="
-                w-full
-                mt-2
-                h-80
-                rounded-xl
-                border
-                p-5
-                resize-none
-                outline-none
-                focus:ring-2
-                focus:ring-blue-500
-                "
+                className="mt-2 h-80 w-full resize-none rounded-xl border p-5 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="
 Write article content here...
 
@@ -236,23 +158,7 @@ Steps:
 
           <button
             onClick={save}
-            className="
-            mt-8
-            w-full
-            bg-gradient-to-r
-            from-blue-600
-            to-indigo-600
-            hover:from-blue-700
-            hover:to-indigo-700
-            text-white
-            py-4
-            rounded-xl
-            font-bold
-            text-lg
-            shadow-lg
-            transition
-            active:scale-95
-            "
+            className="mt-8 w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-lg font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 active:scale-95"
           >
             🚀 Create Knowledge Article
           </button>

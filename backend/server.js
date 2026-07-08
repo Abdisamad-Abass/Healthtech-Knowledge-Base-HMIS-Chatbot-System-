@@ -34,8 +34,8 @@ app.use("/api/v1/search", require("./routes/searchRoutes"));
 
 app.use("/api/v1/chat", require("./routes/chatRoutes"));
 app.use("/api/v1/categories", require("./routes/categoryRoutes"));
-//app.use("/api/v1/users", require("./routes/userRoutes"));
-//app.use("/api/v1/analytics", require("./routes/analyticsRoutes"));
+app.use("/api/v1/users", require("./routes/userRoutes"));
+app.use("/api/v1/analytics", require("./routes/analyticsRoutes"));
 
 // start database then server
 

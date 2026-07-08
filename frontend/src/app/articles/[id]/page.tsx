@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-import api from "@/lib/api";
+import api from '@/lib/api';
 
-import { useParams } from "next/navigation";
+import { useParams } from 'next/navigation';
 
 export default function ArticleDetails() {
   const params = useParams();
@@ -25,41 +25,11 @@ export default function ArticleDetails() {
   }
 
   return (
-    <div
-      className="
-min-h-screen
-bg-gradient-to-br
-from-blue-50
-to-white
-p-10
-"
-    >
-      <div
-        className="
-max-w-5xl
-mx-auto
-bg-white
-rounded-3xl
-shadow-xl
-p-10
-"
-      >
-        <h1
-          className="
-text-4xl
-font-bold
-"
-        >
-          {article.title}
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white p-10">
+      <div className="mx-auto max-w-5xl rounded-3xl bg-white p-10 shadow-xl">
+        <h1 className="text-4xl font-bold">{article.title}</h1>
 
-        <div
-          className="
-mt-5
-text-gray-600
-space-y-2
-"
-        >
+        <div className="mt-5 space-y-2 text-gray-600">
           <p>📂 {article.category?.name}</p>
 
           <p>👤 {article.author?.name}</p>
@@ -69,15 +39,7 @@ space-y-2
 
         <hr className="my-8" />
 
-        <p
-          className="
-whitespace-pre-line
-leading-relaxed
-text-lg
-"
-        >
-          {article.content}
-        </p>
+        <p className="text-lg leading-relaxed whitespace-pre-line">{article.content}</p>
       </div>
     </div>
   );

@@ -3,14 +3,19 @@ const { prisma } = require("../config/database");
 const { createEmbedding } = require("../services/embeddingService");
 
 const { askGroq } = require("../services/groqService");
+const { logChatAnalytics } = require("../services/chatAnalyticsService");
 
-// ===============================
 // CHAT
-// ===============================
 
 exports.chat = async (req, res) => {
   try {
     const { question, sessionId, userId } = req.body;
+
+    const totalStart = Date.now();
+
+    let embeddingTime = 0;
+    let retrievalTime = 0;
+    let llmTime = 0;
 
     if (!question) {
       return res.status(400).json({
@@ -57,7 +62,9 @@ exports.chat = async (req, res) => {
 
     if (greetings.includes(question.toLowerCase().trim())) {
       const answer =
-        "👋 Hello! I am your HealthTech Knowledge Assistant. I can help with HMIS, healthcare documentation, troubleshooting and system guides.";
+        "Hello! 👋 I'm the HealthTech Knowledge Base Assistant.\n\nHow can I help you today? You can ask me questions about HMIS, system procedures, troubleshooting, or other approved knowledge base articles.";
+
+      const responseTime = Date.now() - totalStart;
 
       await prisma.chatMessage.create({
         data: {
@@ -66,7 +73,39 @@ exports.chat = async (req, res) => {
           answer,
 
           sessionId: session.id,
+          responseTime,
+          confidence: 1,
+          citations: [],
         },
+      });
+
+      // ===============================
+      // CHAT ANALYTICS
+      // ===============================
+
+      await logChatAnalytics({
+        sessionId: session.id,
+        userId: userId || req.user?.id,
+
+        question,
+
+        answerFound: true,
+
+        fallbackUsed: false,
+
+        articlesRetrieved: 0,
+
+        citationsReturned: 0,
+
+        confidence: 1,
+
+        embeddingTime: 0,
+        retrievalTime: 0,
+        llmTime: 0,
+
+        responseTime,
+
+        model: "Greeting",
       });
 
       return res.json({
@@ -74,7 +113,10 @@ exports.chat = async (req, res) => {
 
         sessionId: session.id,
 
-        sources: [],
+        confidence: "HIGH",
+        responseTime,
+        sessionId: session.id,
+        citations: [],
       });
     }
 
@@ -82,13 +124,19 @@ exports.chat = async (req, res) => {
     // EMBEDDING
     // ===============================
 
+    const embeddingStart = Date.now();
+
     const embedding = await createEmbedding(question);
+
+    embeddingTime = Date.now() - embeddingStart;
 
     const vector = `[${embedding.join(",")}]`;
 
     // ===============================
     // RAG SEARCH
     // ===============================
+
+    const retrievalStart = Date.now();
 
     const results = await prisma.$queryRaw`
 
@@ -108,7 +156,7 @@ a."product",
 
 a."status",
 
-(a."embedding" <-> ${vector}::vector) 
+(ae."embedding" <-> ${vector}::vector)
 AS distance
 
 
@@ -123,19 +171,35 @@ ON a.id = ae."articleId"
 WHERE a."status"='PUBLISHED'
 
 
-ORDER BY 
+ORDER BY
+
 ae."embedding" <-> ${vector}::vector
 
 
 LIMIT 5
 
 `;
+    retrievalTime = Date.now() - retrievalStart;
+
+    // ======================================
+    // FILTER IRRELEVANT RESULTS
+    // ======================================
+
+    // pgvector distance:
+    // smaller = more similar
+    // larger = less similar
+
+    const MAX_DISTANCE = 0.75;
+
+    const filteredResults = results.filter(
+      (article) => Number(article.distance) <= MAX_DISTANCE,
+    );
 
     // ===============================
     // NO ANSWER FOUND
     // ===============================
 
-    if (!results.length) {
+    if (!filteredResults.length) {
       const answer =
         "I could not find this information in the knowledge base. Please contact support or ask another question.";
 
@@ -147,7 +211,7 @@ LIMIT 5
 
           sessionId: session.id,
 
-          sources: [],
+          citations: [],
         },
       });
 
@@ -161,12 +225,41 @@ LIMIT 5
         },
       });
 
+      // ===============================
+      // CHAT ANALYTICS
+      // ===============================
+
+      await logChatAnalytics({
+        sessionId: session.id,
+        userId: userId || req.user?.id,
+
+        question,
+
+        answerFound: false,
+
+        fallbackUsed: true,
+
+        articlesRetrieved: 0,
+
+        citationsReturned: 0,
+
+        confidence: 0,
+
+        embeddingTime,
+        retrievalTime,
+        llmTime: 0,
+
+        responseTime: Date.now() - totalStart,
+
+        model: "RAG",
+      });
+
       return res.json({
         answer,
 
         sessionId: session.id,
 
-        sources: [],
+        citations: [],
       });
     }
 
@@ -174,7 +267,7 @@ LIMIT 5
     // BUILD CONTEXT
     // ===============================
 
-    const context = results
+    const context = filteredResults
       .map((item, index) => {
         return `
 
@@ -200,8 +293,67 @@ ${item.content.substring(0, 2000)}
     // GROQ ANSWER
     // ===============================
 
-    const answer = await askGroq(context, question);
+    const llmStart = Date.now();
 
+    const aiResponse = await askGroq({
+      context,
+      question,
+    });
+
+    llmTime = Date.now() - llmStart;
+
+    const answer = aiResponse.answer;
+
+    // Did the AI actually answer?
+    const answerFound =
+      aiResponse.confidence === "HIGH" || aiResponse.confidence === "MEDIUM";
+
+    const fallbackUsed = !answerFound;
+
+    // Save unanswered questions
+    if (!answerFound) {
+      await prisma.unansweredQuestion.create({
+        data: {
+          question,
+          sessionId: session.id,
+          similarity: Number(filteredResults[0]?.distance ?? 1),
+          reason: "LLM rejected retrieved context",
+        },
+      });
+    }
+    // ===============================
+    // CHAT ANALYTICS
+    // ===============================
+
+    await logChatAnalytics({
+      sessionId: session.id,
+      userId: userId || req.user?.id,
+
+      question,
+
+      answerFound,
+
+      fallbackUsed,
+
+      articlesRetrieved: answerFound ? filteredResults.length : 0,
+
+      citationsReturned: answerFound ? aiResponse.citations.length : 0,
+
+      confidence:
+        aiResponse.confidence === "HIGH"
+          ? 1
+          : aiResponse.confidence === "MEDIUM"
+            ? 0.6
+            : 0.3,
+
+      embeddingTime,
+      retrievalTime,
+      llmTime,
+
+      responseTime: Date.now() - totalStart,
+
+      model: "llama-3.1-8b-instant",
+    });
     // ===============================
     // SAVE CHAT MESSAGE
     // ===============================
@@ -213,35 +365,48 @@ ${item.content.substring(0, 2000)}
         answer,
 
         sessionId: session.id,
+        responseTime: aiResponse.responseTime,
 
-        sources: results.map((item) => ({
-          articleId: item.articleId,
+        confidence:
+          aiResponse.confidence === "HIGH"
+            ? 1
+            : aiResponse.confidence === "MEDIUM"
+              ? 0.6
+              : 0.3,
 
-          title: item.title,
-
-          slug: item.slug,
-
-          type: item.type,
-
-          distance: Number(item.distance),
-        })),
+        citations: answerFound
+          ? filteredResults.map((item) => ({
+              articleId: item.articleId,
+              title: item.title,
+              slug: item.slug,
+              type: item.type,
+              distance: Number(item.distance),
+            }))
+          : [],
+      },
+    });
+    await prisma.chatSession.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        lastMessageAt: new Date(),
+        totalMessages: {
+          increment: 1,
+        },
       },
     });
 
     return res.json({
-      answer,
+      answer: aiResponse.answer,
+
+      confidence: aiResponse.confidence,
+
+      responseTime: aiResponse.responseTime,
+
+      citations: answerFound ? aiResponse.citations : [],
 
       sessionId: session.id,
-
-      sources: results.map((item) => ({
-        articleId: item.articleId,
-
-        title: item.title,
-
-        slug: item.slug,
-
-        type: item.type,
-      })),
     });
   } catch (error) {
     console.log(error);
@@ -254,9 +419,7 @@ ${item.content.substring(0, 2000)}
   }
 };
 
-// ===============================
 // CHAT HISTORY
-// ===============================
 
 exports.getHistory = async (req, res) => {
   try {
@@ -278,32 +441,43 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// ===============================
 // CHAT FEEDBACK
-// ===============================
 
 exports.addFeedback = async (req, res) => {
   try {
     const { helpful } = req.body;
 
+    const existing = await prisma.chatMessage.findUnique({
+      where: {
+        id: req.params.messageId,
+      },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        message: "Chat message not found",
+      });
+    }
+
     const message = await prisma.chatMessage.update({
       where: {
         id: req.params.messageId,
       },
-
       data: {
         feedback: helpful,
       },
     });
 
-    res.json({
+    return res.json({
       message: "Feedback saved",
-
       data: message,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error(error);
+
+    return res.status(500).json({
       message: "Feedback error",
+      error: error.message,
     });
   }
 };

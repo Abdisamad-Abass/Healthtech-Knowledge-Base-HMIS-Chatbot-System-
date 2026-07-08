@@ -1,1 +1,13 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+.delay-150 {
+  animation-delay: 0.15s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-450 {
+  animation-delay: 0.45s;
+}

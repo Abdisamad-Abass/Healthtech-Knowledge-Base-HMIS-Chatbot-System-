@@ -1,17 +1,19 @@
 const rateLimit = require("express-rate-limit");
 
 const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
+  windowMs: Number(process.env.LOGIN_RATE_LIMIT_WINDOW || 10) * 60 * 1000,
 
-  max: 5, // allow only 5 requests
-
-  message: {
-    message: "Too many requests. Try again later.",
-  },
+  max: Number(process.env.LOGIN_RATE_LIMIT_MAX || 5),
 
   standardHeaders: true,
 
   legacyHeaders: false,
+
+  skipSuccessfulRequests: true,
+
+  message: {
+    message: "Too many failed login attempts. Try again later.",
+  },
 });
 
 module.exports = limiter;

@@ -4,10 +4,7 @@ const bcrypt = require("bcrypt");
 
 const jwt = require("jsonwebtoken");
 
-// ===============================
 // REGISTER USER
-// ===============================
-
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -88,20 +85,23 @@ exports.register = async (req, res) => {
   }
 };
 
-// ===============================
 // LOGIN
-// ===============================
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    const MAX_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS || 5);
+
+    const LOCK_TIME =
+      Number(process.env.ACCOUNT_LOCK_MINUTES || 15) * 60 * 1000;
 
     if (!email || !password) {
       return res.status(400).json({
         message: "Email and password required",
       });
     }
-
+    // find user by email
     const user = await prisma.user.findUnique({
       where: {
         email,
@@ -114,19 +114,42 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Check if account is locked
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const remainingMs = user.lockedUntil.getTime() - Date.now();
+      const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+
+      return res.status(429).json({
+        message: `Account temporarily locked. Try again in ${remainingMinutes} minute(s).`,
+        lockedUntil: user.lockedUntil,
+        remainingMinutes,
+      });
+    }
+
     const match = await bcrypt.compare(password, user.password_hash);
 
     if (!match) {
+      const attempts = user.failedLoginAttempts + 1;
+
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+
+        data: {
+          failedLoginAttempts: attempts,
+          lastFailedLogin: new Date(),
+          lockedUntil:
+            attempts >= MAX_ATTEMPTS ? new Date(Date.now() + LOCK_TIME) : null,
+        },
+      });
+
       await prisma.auditLog.create({
         data: {
           action: "FAILED_LOGIN",
-
           entity: "User",
-
           entityId: user.id,
-
           userId: user.id,
-
           details: {
             email,
           },
@@ -137,35 +160,39 @@ exports.login = async (req, res) => {
         message: "Invalid credentials",
       });
     }
+    // Reset failed attempts
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        lastFailedLogin: null,
+      },
+    });
 
     // create token
 
     const token = jwt.sign(
       {
         id: user.id,
-
         role: user.role,
       },
-
       process.env.JWT_SECRET,
-
       {
         expiresIn: "8h",
       },
     );
 
     // audit successful login
-
     await prisma.auditLog.create({
       data: {
         action: "LOGIN",
-
         entity: "User",
-
         entityId: user.id,
-
         userId: user.id,
-
         details: {
           email: user.email,
         },
@@ -174,31 +201,23 @@ exports.login = async (req, res) => {
 
     res.json({
       token,
-
       user: {
         id: user.id,
-
         name: user.name,
-
         email: user.email,
-
         role: user.role,
       },
     });
   } catch (error) {
     console.log(error);
-
     res.status(500).json({
       message: "Login failed",
-
       error: error.message,
     });
   }
 };
 
-// ===============================
 // CURRENT USER
-// ===============================
 
 exports.me = async (req, res) => {
   try {
@@ -238,9 +257,7 @@ exports.me = async (req, res) => {
   }
 };
 
-// ===============================
 // LOGOUT
-// ===============================
 
 exports.logout = async (req, res) => {
   try {

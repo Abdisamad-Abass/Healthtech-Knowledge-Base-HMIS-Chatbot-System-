@@ -1,13 +1,8 @@
-import ChatBox from "@/components/ChatBox";
+import ChatBox from '@/components/ChatBox';
 
 export default function WidgetPage() {
   return (
-    <div
-      className="
-w-full
-h-screen
-"
-    >
+    <div className="h-screen w-full">
       <ChatBox />
     </div>
   );

@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
 export default function useAuth() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem("user");
+    const saved = localStorage.getItem('user');
 
-    const expiry = localStorage.getItem("tokenExpiry");
+    const expiry = localStorage.getItem('tokenExpiry');
 
     if (expiry && Date.now() > Number(expiry)) {
       logout();
@@ -22,15 +22,15 @@ export default function useAuth() {
   }, []);
 
   function logout() {
-    localStorage.removeItem("token");
+    localStorage.removeItem('token');
 
-    localStorage.removeItem("user");
+    localStorage.removeItem('user');
 
-    localStorage.removeItem("tokenExpiry");
+    localStorage.removeItem('tokenExpiry');
 
     setUser(null);
 
-    window.location.href = "/login";
+    window.location.href = '/login';
   }
 
   return {

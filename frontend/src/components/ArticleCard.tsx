@@ -6,97 +6,26 @@ type ArticleProps = {
   category?: string;
 };
 
-export default function ArticleCard({
-  title,
-  content,
-  category,
-}: ArticleProps) {
+export default function ArticleCard({ title, content, category }: ArticleProps) {
   return (
-    <div
-      className="
-      bg-white
-      rounded-3xl
-      shadow-lg
-      p-7
-      border
-      border-gray-100
-      hover:shadow-2xl
-      hover:-translate-y-1
-      transition
-      duration-300
-      "
-    >
-      <div
-        className="
-        flex
-        items-start
-        justify-between
-        gap-4
-        "
-      >
-        <div
-          className="
-          w-12
-          h-12
-          rounded-2xl
-          bg-blue-100
-          flex
-          items-center
-          justify-center
-          text-2xl
-          "
-        >
+    <div className="rounded-3xl border border-gray-100 bg-white p-7 shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-2xl">
           📚
         </div>
 
         {category && (
-          <span
-            className="
-            bg-blue-50
-            text-blue-600
-            px-3
-            py-1
-            rounded-full
-            text-xs
-            font-semibold
-            "
-          >
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-600">
             {category}
           </span>
         )}
       </div>
 
-      <h2
-        className="
-        text-2xl
-        font-bold
-        mt-5
-        text-gray-800
-        "
-      >
-        {title}
-      </h2>
+      <h2 className="mt-5 text-2xl font-bold text-gray-800">{title}</h2>
 
-      <p
-        className="
-        mt-4
-        text-gray-600
-        leading-relaxed
-        line-clamp-3
-        "
-      >
-        {content}
-      </p>
+      <p className="mt-4 line-clamp-3 leading-relaxed text-gray-600">{content}</p>
 
-      <div
-        className="
-        mt-6
-        h-1
-        w-16
-        bg-blue-600
-        rounded-full
-        "
-      />
+      <div className="mt-6 h-1 w-16 rounded-full bg-blue-600" />
     </div>
   );
 }

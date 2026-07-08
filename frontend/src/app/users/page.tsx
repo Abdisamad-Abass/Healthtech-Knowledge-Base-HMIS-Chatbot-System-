@@ -1,50 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { useEffect, useState } from 'react';
+import api from '@/lib/api';
 
 export default function Users() {
   const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    api.get("/users").then((res) => setUsers(res.data));
+    api.get('/users').then((res) => setUsers(res.data));
   }, []);
 
   return (
-    <div
-      className="
-p-10
-bg-blue-50
-min-h-screen
-"
-    >
-      <h1
-        className="
-text-4xl
-font-bold
-"
-      >
-        Users Management
-      </h1>
+    <div className="min-h-screen bg-blue-50 p-10">
+      <h1 className="text-4xl font-bold">Users Management</h1>
 
-      <div
-        className="
-grid
-md:grid-cols-3
-gap-5
-mt-10
-"
-      >
+      <div className="mt-10 grid gap-5 md:grid-cols-3">
         {users.map((u) => (
-          <div
-            key={u.id}
-            className="
-bg-white
-rounded-xl
-shadow
-p-6
-"
-          >
+          <div key={u.id} className="rounded-xl bg-white p-6 shadow">
             <h2 className="font-bold">{u.name}</h2>
 
             <p>{u.email}</p>

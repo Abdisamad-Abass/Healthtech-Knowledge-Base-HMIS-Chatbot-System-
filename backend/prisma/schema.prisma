@@ -18,9 +18,19 @@ enum Role {
 enum ArticleStatus {
   DRAFT
 
+  SUBMITTED
+
+  IN_REVIEW
+
+  APPROVED
+
+  REJECTED
+
   PUBLISHED
 
   ARCHIVED
+
+  DELETED
 }
 
 enum ArticleType {
@@ -33,24 +43,31 @@ enum ArticleType {
 }
 
 model User {
-  id String @id @default(uuid())
+  id                  String    @id @default(uuid())
+  name                String
+  email               String    @unique
+  password_hash       String
+  role                Role      @default(VIEWER)
+  department          String?
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastFailedLogin     DateTime?
+  isActive            Boolean   @default(true)
 
-  name String
+  // Author relation
+  articles Article[] @relation("ArticleAuthor")
 
-  email String @unique
+  // Reviewer
+  reviewedArticles Article[] @relation("ArticleReviewer")
 
-  password_hash String
+  reviewHistory ReviewHistory[]
 
-  role Role @default(VIEWER)
-  department String?
-
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  articles     Article[]
   feedbacks    Feedback[]
   auditLogs    AuditLog[]
   chatSessions ChatSession[]
   media        Media[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Category {
@@ -72,35 +89,47 @@ model Category {
 }
 
 model Article {
-  id String @id @default(uuid())
-
-  title String
-
-  slug String @unique
-
+  id      String        @id @default(uuid())
+  title   String
+  slug    String        @unique
   content String
-
-  type ArticleType @default(FAQ)
-
-  status ArticleStatus @default(DRAFT)
-
+  type    ArticleType   @default(FAQ)
+  status  ArticleStatus @default(DRAFT)
   product String?
 
-  views       Int               @default(0)
-  reviewCount Int               @default(0)
-  avgRating   Float             @default(0)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  publishedAt DateTime?
-  author      User              @relation(fields: [authorId], references: [id])
-  authorId    String
-  category    Category          @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  tags        Tag[]
-  feedback    Feedback[]
-  versions    ArticleVersion[]
-  embedding   ArticleEmbedding?
-  medias      Media[]
+  // Author
+  authorId String
+  author   User   @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  // Reviewer
+  reviewerId String?
+  reviewer   User?   @relation("ArticleReviewer", fields: [reviewerId], references: [id])
+
+  // Workflow
+  reviewComments  String?
+  submittedAt     DateTime?
+  reviewStartedAt DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  publishedAt     DateTime?
+  archivedAt      DateTime?
+  deletedAt       DateTime?
+  lastStatus      ArticleStatus?
+
+  category      Category          @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  tags          Tag[]
+  feedback      Feedback[]
+  versions      ArticleVersion[]
+  embedding     ArticleEmbedding?
+  medias        Media[]
+  reviewHistory ReviewHistory[]
+
+  views       Int      @default(0)
+  reviewCount Int      @default(0)
+  avgRating   Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model ArticleVersion {
@@ -121,7 +150,7 @@ model ArticleVersion {
 }
 
 model Tag {
-  id String @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String    @unique
   slug      String    @unique
   createdAt DateTime  @default(now())
@@ -132,38 +161,76 @@ model Feedback {
   id        String  @id @default(uuid())
   rating    Int
   comment   String?
-  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
   messageId String?
-
-  user User @relation(fields: [userId], references: [id])
-
-  userId    String
   createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
 }
 
 model ChatSession {
-  id        String        @id @default(uuid())
-  title     String?
-  userId    String?
-  user      User?         @relation(fields: [userId], references: [id])
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  messages  ChatMessage[]
+  id            String        @id @default(uuid())
+  title         String?
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id])
+  lastMessageAt DateTime      @default(now())
+  messages      ChatMessage[]
+  totalMessages Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([lastMessageAt])
 }
 
 model ChatMessage {
+  id        String      @id @default(uuid())
+  question  String
+  answer    String
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  responseTime Int?
+  confidence   Float?
+  citations    Json?
+  feedback     Boolean? // Was this helpful?
+  createdAt    DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+model ChatAnalytics {
   id String @id @default(uuid())
 
-  question String
+  sessionId String?
+  userId    String?
+  question  String
 
-  answer String
+  answerFound       Boolean
+  fallbackUsed      Boolean @default(false)
+  articlesRetrieved Int
+  citationsReturned Int @default(0)
+  confidence        Float?
 
-  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  sources   Json? // Store source articles
-  feedback  Boolean? // Was this helpful?
-  sessionId String
-  createdAt DateTime    @default(now())
+  embeddingTime Int?
+  retrievalTime Int?
+  llmTime       Int?
+  responseTime  Int
+
+  model String
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([answerFound])
 }
 
 model AuditLog {
@@ -178,13 +245,14 @@ model AuditLog {
 }
 
 model ArticleEmbedding {
-  id        String  @id @default(uuid())
-  articleId String  @unique
-  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String                     @id @default(uuid())
+  articleId String                     @unique
+  article   Article                    @relation(fields: [articleId], references: [id], onDelete: Cascade)
   content   String // Stores content snapshot for embedding
-
   embedding Unsupported("vector(384)") // For vector similarity search
   createdAt DateTime                   @default(now())
+
+  @@index([articleId])
 }
 
 model SearchLog {
@@ -193,14 +261,22 @@ model SearchLog {
   resultCount Int
   userId      String?
   createdAt   DateTime @default(now())
+
+  @@index([query])
+  @@index([createdAt])
 }
 
 model UnansweredQuestion {
-  id        String   @id @default(uuid())
-  question  String
-  sessionId String?
-  askedAt   DateTime @default(now())
-  resolved  Boolean  @default(false)
+  id         String   @id @default(uuid())
+  question   String
+  sessionId  String?
+  similarity Float?
+  reason     String?
+  resolved   Boolean  @default(false)
+  askedAt    DateTime @default(now())
+
+  @@index([resolved])
+  @@index([askedAt])
 }
 
 model Media {
@@ -214,4 +290,15 @@ model Media {
   user       User    @relation(fields: [uploadedBy], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+model ReviewHistory {
+  id         String   @id @default(uuid())
+  articleId  String
+  article    Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User     @relation(fields: [reviewerId], references: [id])
+  action     String
+  comments   String?
+  createdAt  DateTime @default(now())
 }

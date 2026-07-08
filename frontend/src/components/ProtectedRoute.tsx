@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function ProtectedRoute({
   children,
@@ -15,17 +15,17 @@ export default function ProtectedRoute({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
 
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
     if (!token) {
-      router.push("/login");
+      router.push('/login');
       return;
     }
 
     if (roles && !roles.includes(user.role)) {
-      router.push("/dashboard");
+      router.push('/dashboard');
       return;
     }
 
