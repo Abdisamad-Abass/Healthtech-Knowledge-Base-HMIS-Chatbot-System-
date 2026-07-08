@@ -121,14 +121,14 @@ flowchart TD
     ErrorHandler11 -->|No| SuccessResponse11[200 Success]
     ErrorHandler12 -->|No| SuccessResponse12[200 Success]
 
-    %% Styling
-    classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef query fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef response fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
-    classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    classDef router fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef parallel fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    %% Styling (GitHub Friendly)
+classDef process fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000
+classDef query fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef response fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000000
+classDef error fill:#ef9a9a,stroke:#c62828,stroke-width:2px,color:#000000
+classDef success fill:#81c784,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef router fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000000
+classDef parallel fill:#f48fb1,stroke:#ad1457,stroke-width:2px,color:#000000
 
     class GetSummary,GetAll,GetOne,GetTopViewed,GetMostSearched,GetLowRated,GetPopularCategories,GetPopularModules,GetAssistantUsage,GetFeedbackTrends,GetUnanswered,GetSearchTrends process
     class SummaryParallel parallel
