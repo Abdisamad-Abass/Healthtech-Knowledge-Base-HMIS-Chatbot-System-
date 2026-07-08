@@ -55,7 +55,7 @@ flowchart TD
     %% ASSIGN ROLE
     AssignRole --> ValidateRole{Validate Role<br/>VIEWER/EDITOR/ADMIN}
     ValidateRole --> UpdateUserRole[Update User Role]
-    UpdateUserRole --> CreateAuditRole[Create Audit Log<br/>action: ASSIGN_ROLE,<br/>details: {role}]
+    UpdateUserRole --> CreateAuditRole[Create Audit Log<br/>action: ASSIGN_ROLE,<br/>details: role]
     CreateAuditRole --> ReturnRole[Role Updated]
 
     %% DEACTIVATE USER
@@ -114,12 +114,12 @@ flowchart TD
     Error9 -->|No| Success
 
     %% Styling
-    classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
-    classDef audit fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000
+classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000000
+classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef audit fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000000
 
     class GetAllUsers,GetUserById,CreateUser,UpdateUser,AssignRole,DeactivateUser,ActivateUser,DeleteUser,GetAuditLogs process
     class ValidateCreate,CheckEmailExists,UserExists,ValidateRole decision
