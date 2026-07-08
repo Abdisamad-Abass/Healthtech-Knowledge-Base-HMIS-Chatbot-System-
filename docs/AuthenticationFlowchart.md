@@ -69,13 +69,13 @@ flowchart TD
     AuthMiddlewareLogout --> CreateAuditLogout[Create audit log<br/>action: LOGOUT]
     CreateAuditLogout --> ReturnLogout[Return logout success]
 
-    %% Styling
-    classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef security fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
-    classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+   %% Styling
+classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#000000
+classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000000
+classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef audit fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#000000
 
     class Register,Login,Me,Logout process
     class ValidateRegister,CheckExisting,ValidateLogin,UserExists,CheckLocked,PasswordMatch,CheckMaxAttempts,UserExistsMe decision
