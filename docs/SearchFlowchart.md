@@ -127,14 +127,14 @@ flowchart TD
     ClearError -->|No| SuccessResponse
     ZeroError -->|No| SuccessResponse
 
-    %% Styling
-    classDef process fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef database fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef semantic fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
-    classDef keyword fill:#fce4ec,stroke:#880e4f,stroke-width:2px
-    classDef error fill:#ffcdd2,stroke:#c62828,stroke-width:2px
-    classDef success fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    %% Styling (GitHub Friendly)
+classDef process fill:#90caf9,stroke:#1565c0,stroke-width:2px,color:#000000
+classDef decision fill:#ffcc80,stroke:#ef6c00,stroke-width:2px,color:#000000
+classDef database fill:#a5d6a7,stroke:#2e7d32,stroke-width:2px,color:#000000
+classDef semantic fill:#ce93d8,stroke:#6a1b9a,stroke-width:2px,color:#000000
+classDef keyword fill:#f48fb1,stroke:#ad1457,stroke-width:2px,color:#000000
+classDef error fill:#ef9a9a,stroke:#c62828,stroke-width:2px,color:#000000
+classDef success fill:#81c784,stroke:#2e7d32,stroke-width:2px,color:#000000
 
     class Search,Autocomplete,RecentSearches,Trending,GetAnalytics,ClearHistory,GetZeroResults process
     class ValidateQuery,RoleCheck,CheckSemanticResults,CheckZeroResults,ValidateAutocomplete decision
