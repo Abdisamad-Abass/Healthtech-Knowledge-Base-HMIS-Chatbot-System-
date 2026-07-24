@@ -10,8 +10,8 @@ router.get("/recent", auth, controller.recentSearches);
 router.get("/trending", auth, controller.trending);
 
 router.get("/analytics", auth, controller.getAnalytics);
-router.delete("/history", auth, controller.clearHistory);
 
 router.get("/zero-results", auth, controller.getZeroResultQueries);
-
+// DELETE CURRENT AUTHENTICATED USER'S SEARCH HISTORY
+router.delete("/recent", auth, controller.clearHistory);
 module.exports = router;

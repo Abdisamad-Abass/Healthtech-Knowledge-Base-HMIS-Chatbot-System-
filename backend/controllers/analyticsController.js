@@ -71,8 +71,11 @@ exports.getSummary = async (req, res) => {
       totalArticlesRetrieved: totalArticles._sum.articlesRetrieved || 0,
     });
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       message: error.message,
+      stack: error.stack,
     });
   }
 };
@@ -132,9 +135,17 @@ exports.getTopViewed = async (req, res) => {
         avgRating: true,
         reviewCount: true,
       },
-      orderBy: {
-        views: "desc",
-      },
+      orderBy: [
+        {
+          views: "desc",
+        },
+        {
+          avgRating: "desc",
+        },
+        {
+          reviewCount: "desc",
+        },
+      ],
       take: 10,
     });
 
@@ -255,21 +266,33 @@ exports.getAssistantUsage = async (req, res) => {
   }
 };
 
+// GET FEEDBACK TRENDS
 exports.getFeedbackTrends = async (req, res) => {
   try {
-    const feedback = await prisma.feedback.groupBy({
-      by: ["rating"],
-      _count: {
-        rating: true,
-      },
-      orderBy: {
-        rating: "asc",
-      },
-    });
+    const trends = await prisma.$queryRaw`
+      SELECT
+    TO_CHAR(DATE("createdAt"), 'YYYY-MM-DD') AS date,
+    ROUND(AVG(rating)::numeric,2) AS "averageRating",
+    COUNT(*)::int AS "totalFeedback",
 
-    res.json(feedback);
+    COUNT(*) FILTER (WHERE rating = 5)::int AS "fiveStar",
+    COUNT(*) FILTER (WHERE rating = 4)::int AS "fourStar",
+    COUNT(*) FILTER (WHERE rating = 3)::int AS "threeStar",
+    COUNT(*) FILTER (WHERE rating = 2)::int AS "twoStar",
+    COUNT(*) FILTER (WHERE rating = 1)::int AS "oneStar"
+
+FROM "Feedback"
+
+GROUP BY DATE("createdAt")
+
+ORDER BY DATE("createdAt");
+    `;
+
+    return res.json(trends);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({
+      message: error.message,
+    });
   }
 };
 exports.getUnanswered = async (req, res) => {
@@ -289,6 +312,7 @@ exports.getUnanswered = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.getSearchTrends = async (req, res) => {
   try {
     const trends = await prisma.$queryRaw`
@@ -304,5 +328,146 @@ exports.getSearchTrends = async (req, res) => {
     res.json(trends);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// GET ARTICLE FEEDBACK ANALYTICS
+exports.getArticleFeedback = async (req, res) => {
+  try {
+    const articles = await prisma.article.findMany({
+      where: {
+        reviewCount: {
+          gt: 0,
+        },
+      },
+
+      select: {
+        id: true,
+        title: true,
+        avgRating: true,
+        reviewCount: true,
+
+        feedback: {
+          select: {
+            rating: true,
+          },
+        },
+      },
+
+      orderBy: {
+        avgRating: "desc",
+      },
+    });
+
+    const results = articles.map((article) => {
+      const distribution = {
+        1: 0,
+        2: 0,
+        3: 0,
+        4: 0,
+        5: 0,
+      };
+
+      article.feedback.forEach((item) => {
+        distribution[item.rating]++;
+      });
+
+      return {
+        id: article.id,
+        title: article.title,
+        averageRating: Number(article.avgRating.toFixed(2)),
+        totalRatings: article.reviewCount,
+        ratings: distribution,
+      };
+    });
+
+    return res.json(results);
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// GET CHAT FEEDBACK ANALYTICS
+exports.getChatFeedback = async (req, res) => {
+  try {
+    const [totalResponses, feedbackGiven, helpful, notHelpful] =
+      await Promise.all([
+        prisma.chatMessage.count(),
+
+        prisma.chatMessage.count({
+          where: {
+            feedback: {
+              not: null,
+            },
+          },
+        }),
+
+        prisma.chatMessage.count({
+          where: {
+            feedback: true,
+          },
+        }),
+
+        prisma.chatMessage.count({
+          where: {
+            feedback: false,
+          },
+        }),
+      ]);
+
+    const helpfulRate =
+      feedbackGiven > 0
+        ? `${((helpful / feedbackGiven) * 100).toFixed(2)}%`
+        : "0%";
+
+    const notHelpfulRate =
+      feedbackGiven > 0
+        ? `${((notHelpful / feedbackGiven) * 100).toFixed(2)}%`
+        : "0%";
+
+    return res.json({
+      totalResponses,
+      feedbackGiven,
+
+      helpful,
+      notHelpful,
+
+      helpfulRate,
+      notHelpfulRate,
+
+      pendingFeedback: totalResponses - feedbackGiven,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+// GET RECENT ACTIVITIES
+exports.getRecentActivities = async (req, res) => {
+  try {
+    const activities = await prisma.auditLog.findMany({
+      take: 10,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    res.json(activities);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };

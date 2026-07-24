@@ -1,0 +1,25 @@
+ backend/config/database.js                 |    1 [32m+[m
+ backend/controllers/analyticsController.js |  193 [32m++++[m[31m-[m
+ backend/controllers/articleController.js   |  545 [32m+++++++++++[m[31m-[m
+ backend/controllers/authController.js      |   20 [32m+[m[31m-[m
+ backend/controllers/chatController.js      |  458 [32m++++++++[m[31m--[m
+ backend/controllers/searchController.js    | 1288 [32m+++++++++++++++++++++[m[31m-------[m
+ backend/controllers/userController.js      |  516 [32m+++++++++++[m[31m-[m
+ backend/middleware/roleMiddleware.js       |   15 [32m+[m[31m-[m
+ backend/prisma/schema.prisma               |   10 [32m+[m[31m-[m
+ backend/routes/analyticsRoutes.js          |   12 [32m+[m
+ backend/routes/articleRoutes.js            |   21 [32m+[m[31m-[m
+ backend/routes/authRoutes.js               |    1 [32m+[m
+ backend/routes/chatRoutes.js               |   25 [32m+[m[31m-[m
+ backend/routes/searchRoutes.js             |    4 [32m+[m[31m-[m
+ backend/routes/userRoutes.js               |   20 [32m+[m[31m-[m
+ frontend/package.json                      |   15 [32m+[m[31m-[m
+ frontend/pnpm-lock.yaml                    | 2323 [32m++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m-[m
+ frontend/src/app/analytics/page.tsx        |   42 [31m-[m
+ frontend/src/app/articles/[id]/page.tsx    |   46 [31m-[m
+ frontend/src/app/articles/page.tsx         |   73 [31m--[m
+ frontend/src/app/editor/page.tsx           |  169 [31m----[m
+ frontend/src/app/globals.css               |  187 [32m+++++[m
+ frontend/src/app/login/page.tsx            |  332 [32m+++++[m[31m---[m
+ frontend/src/components/ChatBox.tsx        |  295 [32m++++++[m[31m-[m
+ 24 files changed, 5665 insertions(+), 946 deletions(-)

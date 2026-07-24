@@ -29,6 +29,7 @@ async function connectDatabase() {
     await prisma.$connect();
 
     console.log("Database connected successfully");
+    console.log(process.env.DATABASE_URL);
   } catch (error) {
     console.log("Database connection failed");
     console.log(error.message);

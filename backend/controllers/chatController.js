@@ -9,7 +9,8 @@ const { logChatAnalytics } = require("../services/chatAnalyticsService");
 
 exports.chat = async (req, res) => {
   try {
-    const { question, sessionId, userId } = req.body;
+    const { question, sessionId } = req.body;
+    const userId = req.user.id;
 
     const totalStart = Date.now();
 
@@ -42,7 +43,7 @@ exports.chat = async (req, res) => {
         data: {
           title: question.substring(0, 50),
 
-          userId: userId || req.user?.id || null,
+          userId,
         },
       });
     }
@@ -59,10 +60,17 @@ exports.chat = async (req, res) => {
       "good afternoon",
       "good evening",
     ];
+    const user = await prisma.user.findUnique({
+      where: {
+        id: req.user.id,
+      },
+      select: {
+        name: true,
+      },
+    });
 
     if (greetings.includes(question.toLowerCase().trim())) {
-      const answer =
-        "Hello! 👋 I'm the HealthTech Knowledge Base Assistant.\n\nHow can I help you today? You can ask me questions about HMIS, system procedures, troubleshooting, or other approved knowledge base articles.";
+      const answer = `Hello ${user.name}!  👋 I'm the HealthTech Knowledge Base Assistant.\n\nHow can I help you today? You can ask me questions about HMIS, system procedures, troubleshooting, or other approved knowledge base articles.`;
 
       const responseTime = Date.now() - totalStart;
 
@@ -78,14 +86,24 @@ exports.chat = async (req, res) => {
           citations: [],
         },
       });
-
+      await prisma.chatSession.update({
+        where: {
+          id: session.id,
+        },
+        data: {
+          lastMessageAt: new Date(),
+          totalMessages: {
+            increment: 1,
+          },
+        },
+      });
       // ===============================
       // CHAT ANALYTICS
       // ===============================
 
       await logChatAnalytics({
         sessionId: session.id,
-        userId: userId || req.user?.id,
+        userId,
 
         question,
 
@@ -126,7 +144,22 @@ exports.chat = async (req, res) => {
 
     const embeddingStart = Date.now();
 
-    const embedding = await createEmbedding(question);
+    // ENRICH THE QUESTION WITH CONTEXT - MATCH HOW ARTICLES ARE EMBEDDED
+    const enrichedQuestion = `
+      Title:
+      ${question}
+
+      Type:
+      Question
+
+      Category:
+      General
+
+      Content:
+      ${question}
+    `;
+
+    const embedding = await createEmbedding(enrichedQuestion);
 
     embeddingTime = Date.now() - embeddingStart;
 
@@ -140,45 +173,89 @@ exports.chat = async (req, res) => {
 
     const results = await prisma.$queryRaw`
 
-SELECT
+      SELECT
 
-ae."articleId",
+      ae."articleId",
+      a."title",
 
-ae."content",
+      a."slug",
 
-a."title",
+      a."content",
 
-a."slug",
+      ae."content" AS embedding_content,
 
-a."type",
+      a."type",
 
-a."product",
+      a."product",
 
-a."status",
+      a."status",
 
-(ae."embedding" <-> ${vector}::vector)
-AS distance
-
-
-FROM "ArticleEmbedding" ae
+      (ae."embedding" <=> ${vector}::vector) AS embedding_distance
 
 
-JOIN "Article" a
-
-ON a.id = ae."articleId"
+      FROM "ArticleEmbedding" ae
 
 
-WHERE a."status"='PUBLISHED'
+      JOIN "Article" a
+
+      ON a.id = ae."articleId"
 
 
-ORDER BY
-
-ae."embedding" <-> ${vector}::vector
+      WHERE a."status"='PUBLISHED'
 
 
-LIMIT 5
+      ORDER BY
 
-`;
+      ae."embedding" <=> ${vector}::vector
+
+
+      LIMIT 10
+
+      `;
+    function normalize(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^\w\s]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function titleSimilarity(question, title) {
+      question = normalize(question);
+      title = normalize(title);
+
+      if (question === title) return 1;
+
+      const qWords = new Set(question.split(" "));
+      const tWords = new Set(title.split(" "));
+
+      let matches = 0;
+
+      for (const word of qWords) {
+        if (tWords.has(word)) {
+          matches++;
+        }
+      }
+
+      return matches / Math.max(qWords.size, tWords.size);
+    }
+
+    function keywordScore(question, content) {
+      const qWords = new Set(
+        question.toLowerCase().split(/\W+/).filter(Boolean),
+      );
+
+      const text = content.toLowerCase();
+
+      let matches = 0;
+
+      for (const word of qWords) {
+        if (text.includes(word)) matches++;
+      }
+
+      return matches / qWords.size;
+    }
+
     retrievalTime = Date.now() - retrievalStart;
 
     // ======================================
@@ -189,10 +266,74 @@ LIMIT 5
     // smaller = more similar
     // larger = less similar
 
-    const MAX_DISTANCE = 0.75;
+    // ======================================
+    // FILTER RELEVANT RESULTS
+    // ======================================
+    console.log(
+      results.map((r) => ({
+        title: r.title,
+        distance: Number(r.embedding_distance),
+      })),
+    );
 
-    const filteredResults = results.filter(
-      (article) => Number(article.distance) <= MAX_DISTANCE,
+    if (!results.length) {
+      return res.json({
+        answer: "I could not find this information in the knowledge base.",
+        citations: [],
+        sessionId: session.id,
+      });
+    }
+
+    const rankedResults = results
+      .map((article) => {
+        const embeddingSimilarity = 1 - Number(article.embedding_distance);
+
+        const titleScore = titleSimilarity(question, article.title);
+        const exactTitle = normalize(question) === normalize(article.title);
+
+        const keyword = keywordScore(
+          question,
+          `${article.title} ${article.content}`,
+        );
+
+        let finalScore =
+          embeddingSimilarity * 0.5 + titleScore * 0.35 + keyword * 0.15;
+
+        if (exactTitle) {
+          finalScore += 0.15;
+        }
+
+        finalScore = Math.min(finalScore, 1);
+
+        return {
+          ...article,
+          embeddingSimilarity,
+          titleScore,
+          keyword,
+          finalScore,
+        };
+      })
+      .sort((a, b) => b.finalScore - a.finalScore);
+
+    const filteredResults = rankedResults.filter((r) => r.finalScore >= 0.5);
+
+    console.table(
+      rankedResults.map((r) => ({
+        title: r.title,
+        distance: Number(r.embedding_distance).toFixed(3),
+        embedding: r.embeddingSimilarity.toFixed(3),
+        title: r.titleScore.toFixed(3),
+        keyword: r.keyword.toFixed(3),
+        final: r.finalScore.toFixed(3),
+      })),
+    );
+
+    console.log(
+      "Filtered:",
+      filteredResults.map((r) => ({
+        title: r.title,
+        distance: Number(r.embedding_distance),
+      })),
     );
 
     // ===============================
@@ -231,7 +372,7 @@ LIMIT 5
 
       await logChatAnalytics({
         sessionId: session.id,
-        userId: userId || req.user?.id,
+        userId,
 
         question,
 
@@ -268,25 +409,21 @@ LIMIT 5
     // ===============================
 
     const context = filteredResults
-      .map((item, index) => {
-        return `
+      .slice(0, 3)
+      .map(
+        (item, index) => `
+          SOURCE ${index + 1}
 
-SOURCE ${index + 1}
+          TITLE:
+          ${item.title}
 
-TITLE:
-${item.title}
+          TYPE:
+          ${item.type}
 
-
-TYPE:
-${item.type}
-
-
-CONTENT:
-
-${item.content.substring(0, 2000)}
-
-`;
-      })
+          CONTENT:
+          ${item.content.substring(0, 1800)}
+          `,
+      )
       .join("\n");
 
     // ===============================
@@ -316,7 +453,9 @@ ${item.content.substring(0, 2000)}
         data: {
           question,
           sessionId: session.id,
-          similarity: Number(filteredResults[0]?.distance ?? 1),
+          similarity: filteredResults.length
+            ? 1 - Number(filteredResults[0].embedding_distance)
+            : 0,
           reason: "LLM rejected retrieved context",
         },
       });
@@ -327,7 +466,7 @@ ${item.content.substring(0, 2000)}
 
     await logChatAnalytics({
       sessionId: session.id,
-      userId: userId || req.user?.id,
+      userId,
 
       question,
 
@@ -375,16 +514,17 @@ ${item.content.substring(0, 2000)}
               : 0.3,
 
         citations: answerFound
-          ? filteredResults.map((item) => ({
+          ? filteredResults.slice(0, 3).map((item) => ({
               articleId: item.articleId,
               title: item.title,
               slug: item.slug,
               type: item.type,
-              distance: Number(item.distance),
+              distance: Number(item.embedding_distance),
             }))
           : [],
       },
     });
+    // chat session
     await prisma.chatSession.update({
       where: {
         id: session.id,
@@ -396,6 +536,23 @@ ${item.content.substring(0, 2000)}
         },
       },
     });
+    //audit logs
+    await prisma.auditLog.create({
+      data: {
+        action: "CHATBOT",
+        entity: "Chat",
+
+        entityId: session.id,
+
+        userId: req.user?.id || null,
+
+        details: {
+          question,
+          confidence: aiResponse.confidence,
+        },
+      },
+    });
+    const topResults = filteredResults.slice(0, 3);
 
     return res.json({
       answer: aiResponse.answer,
@@ -404,7 +561,15 @@ ${item.content.substring(0, 2000)}
 
       responseTime: aiResponse.responseTime,
 
-      citations: answerFound ? aiResponse.citations : [],
+      citations: answerFound
+        ? topResults.map((item) => ({
+            articleId: item.articleId,
+            title: item.title,
+            slug: item.slug,
+            type: item.type,
+            distance: Number(item.embedding_distance),
+          }))
+        : [],
 
       sessionId: session.id,
     });
@@ -420,14 +585,25 @@ ${item.content.substring(0, 2000)}
 };
 
 // CHAT HISTORY
-
 exports.getHistory = async (req, res) => {
   try {
+    const session = await prisma.chatSession.findFirst({
+      where: {
+        id: req.params.sessionId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Session not found",
+      });
+    }
+
     const messages = await prisma.chatMessage.findMany({
       where: {
-        sessionId: req.params.sessionId,
+        sessionId: session.id,
       },
-
       orderBy: {
         createdAt: "asc",
       },
@@ -442,7 +618,6 @@ exports.getHistory = async (req, res) => {
 };
 
 // CHAT FEEDBACK
-
 exports.addFeedback = async (req, res) => {
   try {
     const { helpful } = req.body;
@@ -478,6 +653,181 @@ exports.addFeedback = async (req, res) => {
     return res.status(500).json({
       message: "Feedback error",
       error: error.message,
+    });
+  }
+};
+// GET ALL CHAT SESSIONS FOR LOGGED-IN USER
+exports.getSessions = async (req, res) => {
+  try {
+    const sessions = await prisma.chatSession.findMany({
+      where: {
+        userId: req.user.id,
+        isArchived: false,
+      },
+      orderBy: {
+        lastMessageAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        totalMessages: true,
+        createdAt: true,
+        lastMessageAt: true,
+        isArchived: true,
+      },
+    });
+
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch chat sessions",
+      error: error.message,
+    });
+  }
+};
+
+// ARCHIVE CHAT SESSION
+exports.archiveSession = async (req, res) => {
+  try {
+    const session = await prisma.chatSession.findFirst({
+      where: {
+        id: req.params.sessionId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Chat session not found",
+      });
+    }
+
+    const archivedSession = await prisma.chatSession.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        isArchived: true,
+        archivedAt: new Date(),
+      },
+    });
+
+    return res.json({
+      message: "Chat archived successfully",
+      session: archivedSession,
+    });
+  } catch (error) {
+    console.error("Archive session error:", error);
+
+    return res.status(500).json({
+      message: "Failed to archive chat",
+    });
+  }
+};
+
+// GET ARCHIVED CHAT SESSIONS
+exports.getArchivedSessions = async (req, res) => {
+  try {
+    const sessions = await prisma.chatSession.findMany({
+      where: {
+        userId: req.user.id,
+        isArchived: true,
+      },
+      orderBy: {
+        archivedAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        totalMessages: true,
+        createdAt: true,
+        lastMessageAt: true,
+        archivedAt: true,
+        isArchived: true,
+      },
+    });
+
+    res.json(sessions);
+  } catch (error) {
+    console.error("Get archived sessions error:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch archived chats",
+      error: error.message,
+    });
+  }
+};
+
+// UNARCHIVE CHAT SESSION
+exports.unarchiveSession = async (req, res) => {
+  try {
+    const session = await prisma.chatSession.findFirst({
+      where: {
+        id: req.params.sessionId,
+        userId: req.user.id,
+        isArchived: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Archived chat not found",
+      });
+    }
+
+    const unarchivedSession = await prisma.chatSession.update({
+      where: {
+        id: session.id,
+      },
+      data: {
+        isArchived: false,
+        archivedAt: null,
+      },
+    });
+
+    return res.json({
+      message: "Chat restored successfully",
+      session: unarchivedSession,
+    });
+  } catch (error) {
+    console.error("Unarchive session error:", error);
+
+    return res.status(500).json({
+      message: "Failed to restore chat",
+    });
+  }
+};
+
+// DELETE CHAT SESSION
+exports.deleteSession = async (req, res) => {
+  try {
+    const session = await prisma.chatSession.findFirst({
+      where: {
+        id: req.params.sessionId,
+        userId: req.user.id,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        message: "Chat session not found",
+      });
+    }
+
+    await prisma.chatSession.delete({
+      where: {
+        id: session.id,
+      },
+    });
+
+    return res.json({
+      message: "Chat deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete session error:", error);
+
+    return res.status(500).json({
+      message: "Failed to delete chat",
     });
   }
 };

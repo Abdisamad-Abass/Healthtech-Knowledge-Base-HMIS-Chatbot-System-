@@ -55,16 +55,17 @@ exports.register = async (req, res) => {
 
     await prisma.auditLog.create({
       data: {
-        action: "REGISTER",
-
+        action: "USER_REGISTERED",
         entity: "User",
-
         entityId: user.id,
-
         userId: user.id,
-
         details: {
-          email: user.email,
+          registeredUser: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+          registrationMethod: "SELF_REGISTERED",
         },
       },
     });
@@ -146,7 +147,7 @@ exports.login = async (req, res) => {
 
       await prisma.auditLog.create({
         data: {
-          action: "FAILED_LOGIN",
+          action: "USER_LOGIN_FAILED",
           entity: "User",
           entityId: user.id,
           userId: user.id,
@@ -189,7 +190,7 @@ exports.login = async (req, res) => {
     // audit successful login
     await prisma.auditLog.create({
       data: {
-        action: "LOGIN",
+        action: "USER_LOGIN",
         entity: "User",
         entityId: user.id,
         userId: user.id,
@@ -261,9 +262,10 @@ exports.me = async (req, res) => {
 
 exports.logout = async (req, res) => {
   try {
+    //audit log
     await prisma.auditLog.create({
       data: {
-        action: "LOGOUT",
+        action: "USER_LOGOUT",
 
         entity: "User",
 

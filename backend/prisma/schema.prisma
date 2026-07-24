@@ -181,6 +181,10 @@ model ChatSession {
   lastMessageAt DateTime      @default(now())
   messages      ChatMessage[]
   totalMessages Int           @default(0)
+
+   isArchived    Boolean       @default(false)
+   archivedAt    DateTime?
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -238,8 +242,10 @@ model AuditLog {
   action    String
   entity    String
   entityId  String
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+
+  userId    String?
+  user      User? @relation(fields: [userId], references: [id])
+
   details   Json?
   createdAt DateTime @default(now())
 }

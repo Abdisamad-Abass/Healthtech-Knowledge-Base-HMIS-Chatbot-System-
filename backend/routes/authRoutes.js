@@ -6,6 +6,7 @@ const {
   me,
   logout,
 } = require("../controllers/authController");
+
 const auth = require("../middleware/authMiddleware");
 const limiter = require("../middleware/rateLimitMiddleware");
 

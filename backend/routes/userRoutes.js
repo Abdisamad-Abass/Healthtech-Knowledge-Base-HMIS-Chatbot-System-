@@ -6,18 +6,25 @@ const auth = require("../middleware/authMiddleware");
 
 const role = require("../middleware/roleMiddleware");
 
-// ===============================
 // USERS
-// ===============================
 
 // Get all users
 router.get("/", auth, role(["ADMIN"]), controller.getAllUsers);
 
-// Get single user
-router.get("/:id", auth, role(["ADMIN"]), controller.getUserById);
-
 // Create user
 router.post("/", auth, role(["ADMIN"]), controller.createUser);
+// Audit Logs
+router.get("/audit/logs", auth, role(["ADMIN"]), controller.getAuditLogs);
+router.get(
+  "/audit/logs/summary",
+  auth,
+  role(["ADMIN"]),
+  controller.getAuditLogSummary,
+);
+
+router.get("/departments", auth, role(["ADMIN"]), controller.getDepartments);
+// Get single user
+router.get("/:id", auth, role(["ADMIN"]), controller.getUserById);
 
 // Update user
 router.put("/:id", auth, role(["ADMIN"]), controller.updateUser);
@@ -33,8 +40,5 @@ router.put("/:id/activate", auth, role(["ADMIN"]), controller.activateUser);
 
 // Delete
 router.delete("/:id", auth, role(["ADMIN"]), controller.deleteUser);
-
-// Audit Logs
-router.get("/audit/logs", auth, role(["ADMIN"]), controller.getAuditLogs);
 
 module.exports = router;

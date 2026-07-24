@@ -36,7 +36,7 @@ async function logReview(articleId, reviewerId, action, comments = null) {
       comments,
     },
   });
-
+  //audit log
   await prisma.auditLog.create({
     data: {
       action,
@@ -45,6 +45,7 @@ async function logReview(articleId, reviewerId, action, comments = null) {
       userId: reviewerId,
       details: {
         comments,
+        workflow: "Editorial Workflow",
       },
     },
   });
@@ -79,7 +80,7 @@ exports.create = async (req, res) => {
     }
 
     const slug = await generateSlug(title);
-
+    console.log(slug);
     // Generate embedding BEFORE transaction
     // If this fails nothing is written to DB.
     const embeddingText = `
@@ -107,6 +108,13 @@ exports.create = async (req, res) => {
     const vector = `[${embedding.join(",")}]`;
 
     const article = await prisma.$transaction(async (tx) => {
+      console.log("Creating article with slug:", slug);
+      console.log({
+        slug,
+        title,
+        categoryId,
+        authorId: req.user.id,
+      });
       // Create article
       const createdArticle = await tx.article.create({
         data: {
@@ -173,21 +181,29 @@ exports.create = async (req, res) => {
         (
           gen_random_uuid(),
           ${createdArticle.id},
-          ${content},
+          ${embeddingText},
           ${vector}::vector
         )
       `;
 
-      // Audit
+      // Audit log
       await tx.auditLog.create({
         data: {
-          action: "CREATE",
+          action: "ARTICLE CREATED",
           entity: "Article",
           entityId: createdArticle.id,
           userId: req.user.id,
           details: {
+            createdBy: req.user.email,
             title,
             type,
+            category: category || "General",
+            product: product || "General",
+            author: {
+              id: req.user.id,
+              name: req.user.name,
+              email: req.user.email,
+            },
           },
         },
       });
@@ -211,23 +227,66 @@ exports.create = async (req, res) => {
 // GET ALL
 exports.getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status, type, categoryId } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      type,
+      category,
+      sortBy = "updatedAt",
+      order = "desc",
+    } = req.query;
+
     const pageNumber = Number(page);
     const limitNumber = Number(limit);
+
     const where = {};
 
-    if (status) where.status = status;
-
-    if (type) where.type = type;
-
-    if (categoryId) where.categoryId = categoryId;
-
-    // role based visibility
-
+    // Role visibility
     if (req.user.role === "VIEWER") {
       where.status = "PUBLISHED";
     }
 
+    // Search
+    if (search) {
+      where.OR = [
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          slug: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    // Filters
+    if (status) {
+      where.status = status;
+    }
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (category) {
+      where.category = {
+        name: category,
+      };
+    }
+
+    // Total count
+    const totalArticles = await prisma.article.count({
+      where,
+    });
+
+    // Articles
     const articles = await prisma.article.findMany({
       where,
 
@@ -253,10 +312,11 @@ exports.getAll = async (req, res) => {
       },
 
       orderBy: {
-        createdAt: "desc",
+        [sortBy]: order,
       },
 
       skip: (pageNumber - 1) * limitNumber,
+
       take: limitNumber,
     });
 
@@ -264,10 +324,19 @@ exports.getAll = async (req, res) => {
       role: req.user.role,
 
       articles,
+
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total: totalArticles,
+        totalPages: Math.ceil(totalArticles / limitNumber),
+        hasNext: pageNumber < Math.ceil(totalArticles / limitNumber),
+        hasPrevious: pageNumber > 1,
+      },
     });
   } catch (error) {
     res.status(500).json({
-      message: "Failed loading",
+      message: "Failed loading articles",
       error: error.message,
     });
   }
@@ -318,17 +387,14 @@ exports.getById = async (req, res) => {
         message: "You are not allowed to view this article.",
       });
     }
-    await prisma.article.update({
-      where: {
-        id: article.id,
-      },
-
-      data: {
-        views: {
-          increment: 1,
-        },
-      },
-    });
+    // Count view only when the viewer is NOT the article owner
+    if (article.authorId !== req.user.id) {
+      await prisma.$executeRaw`
+    UPDATE "Article"
+    SET "views" = "views" + 1
+    WHERE "id" = ${article.id}
+  `;
+    }
 
     // related articles
     const relatedArticles = await prisma.article.findMany({
@@ -408,7 +474,7 @@ exports.update = async (req, res) => {
     }
 
     // Allow ONLY these fields
-    const { title, content, type, product, categoryId } = req.body;
+    const { title, content, type, product, categoryId, tags } = req.body;
 
     // Determine/Get category name
     let categoryName = "General";
@@ -489,19 +555,47 @@ exports.update = async (req, res) => {
       // update only allowed fields
       const article = await tx.article.update({
         where: { id },
+
         data: {
           title,
           content,
           type,
           product,
           categoryId,
+
+          ...(Array.isArray(tags)
+            ? {
+                tags: {
+                  set: [],
+
+                  connectOrCreate: tags.map((tag) => ({
+                    where: {
+                      name: tag,
+                    },
+
+                    create: {
+                      name: tag,
+                      slug: slugify(tag, {
+                        lower: true,
+                        strict: true,
+                      }),
+                    },
+                  })),
+                },
+              }
+            : {}),
+        },
+
+        include: {
+          category: true,
+          tags: true,
         },
       });
       // Update vector
       await tx.$executeRaw`
           UPDATE "ArticleEmbedding"
           SET
-            "content"=${content || old.content},
+            "content"=${embeddingText},
             "embedding"=${vector}::vector
           WHERE "articleId"=${id}
           `;
@@ -513,6 +607,31 @@ exports.update = async (req, res) => {
           entity: "Article",
           entityId: id,
           userId: req.user.id,
+
+          details: {
+            updatedBy: {
+              id: req.user.id,
+              email: req.user.email,
+            },
+
+            before: {
+              title: old.title,
+              contentLength: old.content.length,
+              type: old.type,
+              categoryId: old.categoryId,
+              product: old.product,
+              status: old.status,
+            },
+
+            after: {
+              title: title || old.title,
+              contentLength: (content || old.content).length,
+              type: type || old.type,
+              categoryId: categoryId || old.categoryId,
+              product: product || old.product,
+              status: old.status,
+            },
+          },
         },
       });
       return article;
@@ -567,8 +686,13 @@ exports.submit = async (req, res) => {
         submittedAt: new Date(),
       },
     });
-
-    await logReview(article.id, req.user.id, "SUBMITTED");
+    //audit log
+    await logReview(
+      article.id,
+      req.user.id,
+      "SUBMITTED",
+      "Article submitted for review.",
+    );
 
     res.json({
       message: "Article submitted for review.",
@@ -957,6 +1081,68 @@ exports.restore = async (req, res) => {
     });
   }
 };
+// RESUBMIT REJECTED ARTICLE
+exports.resubmit = async (req, res) => {
+  try {
+    const existing = await prisma.article.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    if (!existing) {
+      return res.status(404).json({
+        message: "Article not found.",
+      });
+    }
+
+    // Only rejected articles can be resubmitted
+    if (existing.status !== "REJECTED") {
+      return res.status(400).json({
+        message: "Only rejected articles can be resubmitted.",
+      });
+    }
+
+    // Only the original author or admin can resubmit
+    if (req.user.role !== "ADMIN" && existing.authorId !== req.user.id) {
+      return res.status(403).json({
+        message: "Only the article author can resubmit this article.",
+      });
+    }
+
+    const article = await prisma.article.update({
+      where: {
+        id: req.params.id,
+      },
+
+      data: {
+        status: "DRAFT",
+        rejectedAt: null,
+        reviewComments: null,
+        reviewerId: null,
+        reviewStartedAt: null,
+      },
+    });
+
+    await logReview(
+      article.id,
+      req.user.id,
+      "RESUBMITTED",
+      "Rejected article returned to draft for revision.",
+    );
+
+    return res.json({
+      message: "Rejected article returned to draft.",
+      article,
+    });
+  } catch (error) {
+    console.error("Resubmit article error:", error);
+
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
 // LOG REVIEW HISTORY
 exports.getReviewHistory = async (req, res) => {
   try {
@@ -1041,13 +1227,23 @@ exports.delete = async (req, res) => {
         DELETE FROM "ArticleEmbedding"
         WHERE "articleId"=${req.params.id}
       `;
-
+      //audit log
       await tx.auditLog.create({
         data: {
           action: "DELETE",
           entity: "Article",
           entityId: req.params.id,
           userId: req.user.id,
+
+          details: {
+            deletedBy: req.user.email,
+
+            article: {
+              title: existing.title,
+              status: existing.status,
+              authorId: existing.authorId,
+            },
+          },
         },
       });
     });
@@ -1134,12 +1330,301 @@ exports.addFeedback = async (req, res) => {
       },
     });
 
+    //audit log
+    await prisma.auditLog.create({
+      data: {
+        action: "FEEDBACK",
+        entity: "Article",
+        entityId: req.params.id,
+        userId: req.user.id,
+
+        details: {
+          rating,
+          comment,
+        },
+      },
+    });
+
     res.json({
       message: "Feedback saved",
       feedback,
     });
   } catch (error) {
     res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+// GET EDITOR DASHBOARD
+// GET EDITOR DASHBOARD
+exports.getEditorDashboard = async (req, res) => {
+  try {
+    const editorId = req.user.id;
+
+    // Only editors can access this dashboard
+    if (req.user.role !== "EDITOR") {
+      return res.status(403).json({
+        message: "Only editors can access this dashboard.",
+      });
+    }
+
+    // Fetch the actual editor from the database
+    const editor = await prisma.user.findUnique({
+      where: {
+        id: editorId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!editor) {
+      return res.status(404).json({
+        message: "Editor not found.",
+      });
+    }
+
+    // FETCH ALL ARTICLES BELONGING TO THIS EDITOR
+    const articles = await prisma.article.findMany({
+      where: {
+        authorId: editorId,
+      },
+
+      include: {
+        category: true,
+
+        feedback: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          take: 10,
+        },
+      },
+
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    // ============================================================
+    // COUNT ALL ARTICLE STATUSES
+    // ============================================================
+
+    const statusCounts = await prisma.article.groupBy({
+      by: ["status"],
+
+      where: {
+        authorId: editorId,
+      },
+
+      _count: {
+        status: true,
+      },
+    });
+
+    // Create all statuses with default value 0
+    const statusStats = {
+      DRAFT: 0,
+      SUBMITTED: 0,
+      IN_REVIEW: 0,
+      APPROVED: 0,
+      REJECTED: 0,
+      PUBLISHED: 0,
+      ARCHIVED: 0,
+      DELETED: 0,
+    };
+
+    // Fill status counts from database
+    statusCounts.forEach((item) => {
+      statusStats[item.status] = item._count.status;
+    });
+
+    // TOTAL ARTICLES
+
+    const totalArticles = await prisma.article.count({
+      where: {
+        authorId: editorId,
+      },
+    });
+
+    // ============================================================
+    // TOTAL VIEWS ACROSS ALL EDITOR ARTICLES
+    // ============================================================
+
+    const viewsAggregate = await prisma.article.aggregate({
+      where: {
+        authorId: editorId,
+      },
+
+      _sum: {
+        views: true,
+      },
+    });
+
+    const totalViews = viewsAggregate._sum.views || 0;
+
+    // ============================================================
+    // AVERAGE RATING ACROSS ALL EDITOR ARTICLES
+    // ============================================================
+
+    const ratingAggregate = await prisma.feedback.aggregate({
+      where: {
+        article: {
+          authorId: editorId,
+        },
+      },
+
+      _avg: {
+        rating: true,
+      },
+    });
+
+    const avgRating = ratingAggregate._avg.rating || 0;
+
+    // ============================================================
+    // RECENT FEEDBACK
+    // ============================================================
+
+    const feedbacks = await prisma.feedback.findMany({
+      where: {
+        article: {
+          authorId: editorId,
+        },
+      },
+
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+
+        article: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+
+      take: 10,
+    });
+
+    // ============================================================
+    // RESPONSE
+    // ============================================================
+
+    return res.json({
+      editor,
+
+      stats: {
+        total: totalArticles,
+        // All article statuses
+        draft: statusStats.DRAFT,
+        submitted: statusStats.SUBMITTED,
+        inReview: statusStats.IN_REVIEW,
+        approved: statusStats.APPROVED,
+        rejected: statusStats.REJECTED,
+        published: statusStats.PUBLISHED,
+        archived: statusStats.ARCHIVED,
+        deleted: statusStats.DELETED,
+
+        views: totalViews,
+        avgRating,
+      },
+
+      articles,
+
+      feedbacks,
+    });
+  } catch (error) {
+    console.error("Editor dashboard error:", error);
+
+    return res.status(500).json({
+      message: "Failed to load editor dashboard.",
+      error: error.message,
+    });
+  }
+};
+
+// GET ARTICLE BY SLUG
+exports.getBySlug = async (req, res) => {
+  try {
+    const article = await prisma.article.findUnique({
+      where: {
+        slug: req.params.slug,
+      },
+      include: {
+        category: true,
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        tags: true,
+        versions: true,
+        feedback: true,
+        embedding: true,
+      },
+    });
+
+    if (!article) {
+      return res.status(404).json({
+        message: "Article not found",
+      });
+    }
+
+    if (req.user.role === "VIEWER" && article.status !== "PUBLISHED") {
+      return res.status(403).json({
+        message: "You are not allowed to view this article.",
+      });
+    }
+
+    if (
+      req.user.role === "EDITOR" &&
+      article.status !== "PUBLISHED" &&
+      article.authorId !== req.user.id
+    ) {
+      return res.status(403).json({
+        message: "You are not allowed to view this article.",
+      });
+    }
+
+    // Count view only when the viewer is NOT the article owner
+    if (article.authorId !== req.user.id) {
+      await prisma.$executeRaw`
+    UPDATE "Article"
+    SET "views" = "views" + 1
+    WHERE "id" = ${article.id}
+  `;
+    }
+
+    return res.json(article);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error loading article",
       error: error.message,
     });
   }
