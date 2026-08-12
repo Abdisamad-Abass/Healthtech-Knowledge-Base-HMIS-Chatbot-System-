@@ -114,7 +114,7 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="bg-background min-h-screen">
       <section className="grid min-h-screen grid-cols-2 gap-10">
         {/* LEFT SIDE */}
         <aside className="relative">
@@ -133,21 +133,32 @@ export default function Login() {
           {/* Blue Overlay */}
           <div className="absolute inset-0 bg-[#0e59c190]">
             {/*content */}
-            <div className="relative flex h-full flex-col justify-center px-14">
-              <h1 className="text-5xl font-bold text-white">Intelligence in Every Interaction.</h1>
-              <p className="mt-2 font-medium text-gray-100">
-                Access the next generation of HealthTech Knowledge Base Systems. Secure, fast, and
-                engineered for clinical accuracy.
-              </p>
-              <div className="mt-3 flex items-center gap-5">
-                <p className="flex flex-col font-bold text-white">
-                  99.9%
-                  <span className="text-sm font-light text-white">Accuracy</span>
+            <div className="from-primary/90 via-primary absolute inset-0 bg-gradient-to-br to-[#0b3fd6]">
+              <div className="relative flex h-full flex-col justify-center px-14">
+                <div className="mb-8 inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white backdrop-blur">
+                  Clinical AI Knowledge Platform
+                </div>
+
+                <h1 className="max-w-lg text-5xl leading-tight font-bold text-white">
+                  Intelligence in every interaction.
+                </h1>
+
+                <p className="mt-5 max-w-md text-lg text-white/90">
+                  Secure access to your HealthTech knowledge base with AI-assisted search, verified
+                  clinical content, and enterprise-grade protection.
                 </p>
-                <p className="flex flex-col text-white">
-                  256-bit
-                  <span>Encryption</span>
-                </p>
+
+                <div className="mt-10 grid grid-cols-2 gap-6">
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                    <p className="text-3xl font-bold text-white">99.9%</p>
+                    <p className="mt-1 text-sm text-white/80">Knowledge accuracy</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+                    <p className="text-3xl font-bold text-white">256-bit</p>
+                    <p className="mt-1 text-sm text-white/80">End-to-end encryption</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -158,35 +169,41 @@ export default function Login() {
           <div className="w-full max-w-md">
             {/* Header */}
             <header>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-foreground text-2xl font-bold">
                 {isLogin ? 'Welcome Back' : 'Join the Network'}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground mt-2 text-sm leading-6 transition-all duration-300">
                 {isLogin
-                  ? 'Enter your credentials to access the administrative dashboard.'
-                  : 'Create your secure account to start contributing to the knowledge base'}
+                  ? 'Sign in securely to access your HealthTech knowledge base dashboard and AI-powered clinical resources.'
+                  : 'Create a secure account to access the knowledge base, collaborate with editors, and manage healthcare content.'}
               </p>
             </header>
 
             {/* Form */}
             <form onSubmit={isLogin ? handleLogin : handleRegister} className="mt-3 space-y-5">
               {/* Tabs */}
-              <div className="flex border-b border-gray-200">
+              <div className="border-border bg-muted grid grid-cols-2 gap-1 rounded-xl border">
+                {/* Login Tab */}
                 <button
                   type="button"
                   onClick={() => setIsLogin(true)}
-                  className={`w-1/2 pb-3 text-sm font-semibold transition ${
-                    isLogin ? 'border-b-2 border-[#003C90] text-[#003C90]' : 'text-gray-500'
+                  className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
+                    isLogin
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground bg-transparent'
                   }`}
                 >
                   Login
                 </button>
 
+                {/* Register Tab */}
                 <button
                   type="button"
                   onClick={() => setIsLogin(false)}
-                  className={`w-1/2 pb-3 text-sm font-semibold transition ${
-                    !isLogin ? 'border-b-2 border-[#003C90] text-[#003C90]' : 'text-gray-500'
+                  className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
+                    !isLogin
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground bg-transparent'
                   }`}
                 >
                   Register
@@ -254,12 +271,12 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full text-white">
-                {loading
-                  ? 'Please Wait...'
-                  : isLogin
-                    ? 'Sign in to Dashboard'
-                    : 'Create professional account'}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="bg-primary text-primary-foreground hover:bg-primary-hover h-12 w-full rounded-xl transition-all duration-200 active:scale-[0.99]"
+              >
+                {loading ? 'Please wait...' : isLogin ? 'Sign in to dashboard' : 'Create account'}
               </Button>
             </form>
           </div>
