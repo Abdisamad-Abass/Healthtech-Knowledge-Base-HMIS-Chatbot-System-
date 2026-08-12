@@ -79,6 +79,9 @@ import {
 } from 'recharts';
 import api from '@/lib/api';
 
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+
 export default function AdminDashboard() {
   const [summary, setSummary] = useState<SummaryAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
@@ -379,10 +382,10 @@ export default function AdminDashboard() {
       icon: MessageSquare,
       number: loading ? '...' : (summary?.totalChats ?? 0),
       rate: summary?.fallbackRate ?? '0%',
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      rateBg: 'bg-blue-100',
-      rateColor: 'text-blue-700',
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+      rateBg: 'bg-primary/10',
+      rateColor: 'text-primary',
     },
     {
       title: 'Answered Rate',
@@ -479,12 +482,15 @@ export default function AdminDashboard() {
       <header className="flex items-center justify-between">
         {/* Title */}
         <div>
-          <h1 className="text-xl font-bold text-[#0F52BA]">System Dashboard</h1>
+          <h1 className="text-lg font-bold">System Dashboard</h1>
+          <p className="text-muted-foreground text-xs">
+            Live view of chatbot performance and content health.
+          </p>
         </div>
         {/* Actions */}
         <div className="flex items-center gap-2">
           <button className="rounded-xl border px-2 py-1">Last 30 days</button>
-          <button className="rounded-xl bg-blue-500 px-2 py-1">Export Data</button>
+          <Button className="bg-primary rounded-xl px-2 py-1">Export Data</Button>
         </div>
       </header>
 
@@ -492,157 +498,207 @@ export default function AdminDashboard() {
       <section className="mt-5">
         {/* Card Content */}
         <div className="grid grid-cols-4 gap-4">
-          {cards.map((card, index) => (
-            <Link
-              href={card.title === 'Unanswered' ? '/admin/unanswered-questions' : '#'}
-              key={index}
-              className={`card ${
-                card.title === 'Unanswered'
-                  ? 'cursor-pointer transition hover:-translate-y-1 hover:shadow-lg'
-                  : ''
-              }`}
-            >
-              {/* icon */}
-              <div className="flex items-center justify-between">
-                <div className={`rounded-xl p-3 ${card.iconBg}`}>
-                  <card.icon className={card.iconColor} />
-                </div>
-                {/* Rate */}
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${card.rateBg} ${card.rateColor}`}
-                >
-                  {card.rate}
-                </span>
-              </div>
-              {/* title and number */}
-              <div className="mt-3 flex flex-col">
-                <p className="font-medium text-gray-500">{card.title}</p>
-                <span className="text-lg font-bold">{card.number}</span>
-              </div>
-            </Link>
-          ))}
+          {cards.map((card, index) => {
+            const content = (
+              <Card
+                className={
+                  card.title === 'Unanswered'
+                    ? 'h-full cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-sm'
+                    : 'h-full'
+                }
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div className={`rounded-lg p-2 ${card.iconBg}`}>
+                      <card.icon className={`h-5 w-5 ${card.iconColor}`} />
+                    </div>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${card.rateBg} ${card.rateColor}`}
+                    >
+                      {card.rate}
+                    </span>
+                  </div>
+
+                  <div className="mt-1">
+                    <p className="text-lg font-bold tracking-tight">{card.number}</p>
+                    <p className="text-xs font-medium text-gray-500">{card.title}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+
+            return card.title === 'Unanswered' ? (
+              <Link href="/admin/unanswered-questions" key={index} className="block">
+                {content}
+              </Link>
+            ) : (
+              <div key={index}>{content}</div>
+            );
+          })}
         </div>
 
         {/*Feedback and Recent */}
-        <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="mt-5 grid grid-cols-[7fr_3fr] gap-3">
           {/*feedback trend*/}
-          <div className="card">
-            <div className="flex items-center justify-between">
+          <Card className="px-2 py-1">
+            <CardHeader className="flex flex-row justify-between">
               <div className="flex flex-col">
-                <h1 className="text-lg font-bold">Feedback Trends</h1>
-                <p className="text-xs text-gray-500">
+                <CardTitle className="text-base">Feedback Trends</CardTitle>
+                <CardDescription className="text-xs text-gray-500">
                   Star ratings distribution over the last 30 days
-                </p>
+                </CardDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-green-500"></span>
-                  <span className="text-gray-600">Rating 4–5</span>
+                  <span className="bg-primary h-3 w-3 rounded-full"></span>
+                  <span className="text-muted-foreground text-xs">Rating 4–5</span>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-red-400"></span>
-                  <span className="text-gray-600">Rating 1-3</span>
+                  <span className="h-0.5 w-4 border-t-2 border-dashed border-slate-400"></span>
+                  <span className="text-muted-foreground text-xs">Rating 1–3</span>
                 </div>
               </div>
-            </div>
+            </CardHeader>
             {/* Chart Placeholder */}
 
-            <div className="mt-6 h-[320px] rounded-2xl bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
+            <CardContent className="mt-6 h-[320px] rounded-2xl bg-gradient-to-br from-slate-50 via-white to-blue-50 p-2">
               {feedbackLoading ? (
                 <p>Loading feedback...</p>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={feedbackData}>
+                  <AreaChart
+                    data={feedbackData}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
                     <defs>
-                      <linearGradient id="positive" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0.03} />
+                      <linearGradient id="positiveGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#155EEF" stopOpacity={0.32} />
+                        <stop offset="60%" stopColor="#155EEF" stopOpacity={0.1} />
+                        <stop offset="100%" stopColor="#155EEF" stopOpacity={0.02} />
                       </linearGradient>
 
-                      <linearGradient id="negative" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.35} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0.02} />
+                      <linearGradient id="negativeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#94A3B8" stopOpacity={0.16} />
+                        <stop offset="100%" stopColor="#94A3B8" stopOpacity={0} />
                       </linearGradient>
                     </defs>
 
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E5E7EB" />
+                    <CartesianGrid vertical={false} stroke="#E9EEF7" strokeDasharray="4 6" />
 
                     <XAxis
                       dataKey="day"
-                      tick={{ fill: '#6B7280', fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
+                      tickMargin={12}
+                      tick={{ fill: '#64748B', fontSize: 12 }}
                     />
 
                     <YAxis
-                      tick={{ fill: '#6B7280', fontSize: 12 }}
                       axisLine={false}
                       tickLine={false}
+                      tickMargin={10}
+                      tick={{ fill: '#64748B', fontSize: 12 }}
                     />
 
                     <Tooltip
+                      cursor={{ stroke: '#CBD5E1', strokeDasharray: '4 4' }}
                       content={({ active, payload, label }) => {
                         if (!active || !payload?.length) return null;
 
                         const data = payload[0].payload;
 
                         return (
-                          <div className="rounded-xl border bg-white p-4 shadow-xl">
-                            <p className="font-semibold">{label}</p>
+                          <div className="border-border bg-card rounded-2xl border p-4 shadow-2xl">
+                            <p className="text-foreground text-sm font-semibold">{label}</p>
 
-                            <p className="text-green-600">Positive: {data.positive}</p>
+                            <div className="mt-3 space-y-2 text-sm">
+                              <div className="flex justify-between gap-8">
+                                <span className="text-muted-foreground">Positive</span>
+                                <span className="text-primary font-semibold">{data.positive}</span>
+                              </div>
 
-                            <p className="text-red-600">Negative: {data.negative}</p>
+                              <div className="flex justify-between gap-8">
+                                <span className="text-muted-foreground">Negative</span>
+                                <span className="text-muted-foreground font-semibold">
+                                  {data.negative}
+                                </span>
+                              </div>
 
-                            <p className="flex items-center gap-2">
-                              Avg Rating: <FaStar size={18} className="text-yellow-500" />{' '}
-                              <span className="text-lg font-medium">{data.averageRating}</span>
-                            </p>
+                              <div className="my-2 border-t border-slate-200" />
 
-                            <p>Feedback: {data.totalFeedback}</p>
+                              <div className="flex justify-between gap-8">
+                                <span className="text-muted-foreground">Average rating</span>
+                                <span className="text-foreground font-semibold">
+                                  {data.averageRating.toFixed(1)}
+                                </span>
+                              </div>
+
+                              <div className="flex justify-between gap-8">
+                                <span className="text-muted-foreground">Feedback</span>
+                                <span className="text-foreground font-semibold">
+                                  {data.totalFeedback}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         );
                       }}
                     />
 
+                    {/* Positive line - primary blue */}
                     <Area
                       type="monotone"
                       dataKey="positive"
-                      stroke="#22c55e"
+                      stroke="#155EEF"
                       strokeWidth={3}
-                      fill="url(#positive)"
-                      activeDot={{ r: 6 }}
+                      fill="url(#positiveGradient)"
+                      dot={false}
+                      activeDot={{
+                        r: 5,
+                        fill: '#155EEF',
+                        stroke: '#FFFFFF',
+                        strokeWidth: 2,
+                      }}
                     />
 
+                    {/* Negative line - dotted */}
                     <Area
                       type="monotone"
                       dataKey="negative"
-                      stroke="#ef4444"
-                      strokeWidth={3}
-                      fill="url(#negative)"
-                      activeDot={{ r: 5 }}
+                      stroke="#94A3B8"
+                      strokeWidth={2.5}
+                      strokeDasharray="6 6"
+                      fill="url(#negativeGradient)"
+                      dot={false}
+                      activeDot={{
+                        r: 4,
+                        fill: '#94A3B8',
+                        stroke: '#FFFFFF',
+                        strokeWidth: 2,
+                      }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/*Recent Activity  */}
-          <div className="card">
-            <div className="flex items-center justify-between">
+          <Card>
+            <CardHeader className="flex flex-row justify-between">
               <div>
-                <h1 className="text-lg font-bold">Recent Activity</h1>
-                <p className="text-sm text-gray-500">Latest system events</p>
+                <CardTitle className="text-base">Recent Activity</CardTitle>
+                <CardDescription className="text-xs">Latest system events</CardDescription>
               </div>
-              <button className="rounded-lg bg-blue-50 px-3 py-1 text-sm font-medium text-blue-600 transition hover:bg-blue-100">
+              <button className="bg-accent text-primary hover:bg-primary/15 rounded-lg px-3 py-1 text-xs font-medium transition">
                 View All
               </button>
-            </div>
+            </CardHeader>
 
             {/* */}
-            <div className="mt-6 h-[300px] overflow-y-auto pr-2">
+            <CardContent className="mt-6 h-[300px] overflow-y-auto pr-2">
               {activityLoading ? (
                 <p className="text-sm text-gray-500">Loading...</p>
               ) : (
@@ -651,27 +707,29 @@ export default function AdminDashboard() {
 
                   return (
                     <div key={activity.id} className="relative flex gap-4 pb-6 last:pb-0">
+                      {/* Timeline connector - starts BELOW the icon */}
                       {index !== activities.length - 1 && (
-                        <div className="absolute top-10 left-[19px] h-full w-[2px] bg-blue-400" />
+                        <div className="bg-primary/10 absolute top-10 left-[19px] h-full w-[2px]" />
                       )}
-
-                      <div className="z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100">
-                        <Timer className="h-5 w-5 text-blue-600" />
+                      {/* Timeline icon */}
+                      <div className="bg-primary/15 z-20 flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                        <Timer className="text-primary h-5 w-5" />
                       </div>
-
-                      <div className="flex-1 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                        <p className="font-medium text-gray-800">{item.title}</p>
-
-                        <div className="mt-3 flex items-center gap-3">
-                          <span className="text-sm text-gray-500">
+                      {/* Activity card */}
+                      <div className="border-border flex-1 rounded-xl border bg-white p-4 shadow-sm">
+                        <p className="text-sm font-medium text-gray-800">{item.title}</p>
+                        {/* Time */}
+                        <div className="mt-3 flex items-center gap-2">
+                          <span className="text-xs text-gray-500">
                             {timeAgo(activity.createdAt)}
                           </span>
-
-                          <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                          {/* State */}
+                          <span className="bg-primary/10 text-primary rounded-full px-2 py-1 text-xs font-medium">
                             {item.state}
                           </span>
+                          {/* Role */}
                           <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            className={`rounded-full px-2 py-1 text-xs font-medium ${
                               roleStyles[item.role] ?? 'bg-gray-100 text-gray-700'
                             }`}
                           >
@@ -683,8 +741,8 @@ export default function AdminDashboard() {
                   );
                 })
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Assistant Usage by Model and search insights*/}
@@ -692,50 +750,94 @@ export default function AdminDashboard() {
           {/* Assistant Usage by Model */}
           <div className="card">
             <div className="mb-5">
-              <h1 className="text-xl font-bold">Assistant Usage by Model</h1>
+              <h1 className="text-base font-semibold">Assistant Usage by Model</h1>
 
-              <p className="text-sm text-gray-500">Distribution of chatbot requests</p>
+              <p className="text-muted-foreground text-xs">Distribution of chatbot requests</p>
             </div>
 
             {assistantLoading ? (
               <p>Loading...</p>
             ) : (
-              assistantUsage.map((model) => (
-                <div key={model.title} className="mb-5">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div>
-                      <h2 className="font-semibold">{model.title}</h2>
+              assistantUsage.map((model) => {
+                const getModelStyle = (title: string) => {
+                  const t = title.toLowerCase();
 
-                      <p className="text-xs text-gray-500">{model.count} requests</p>
+                  if (t.includes('llama') || t.includes('rag')) {
+                    return {
+                      track: 'bg-blue-50',
+                      bar: 'from-[#155EEF] to-[#4C8DFF]',
+                      pill: 'bg-blue-100 text-blue-700',
+                      accent: 'text-blue-700',
+                    };
+                  }
+
+                  if (t.includes('greeting')) {
+                    return {
+                      track: 'bg-teal-50',
+                      bar: 'from-[#0F9B8E] to-[#2DD4BF]',
+                      pill: 'bg-teal-100 text-teal-700',
+                      accent: 'text-teal-700',
+                    };
+                  }
+
+                  return {
+                    track: 'bg-amber-50',
+                    bar: 'from-[#F59E0B] to-[#FBBF24]',
+                    pill: 'bg-amber-100 text-amber-700',
+                    accent: 'text-amber-700',
+                  };
+                };
+
+                const style = getModelStyle(model.title);
+
+                return (
+                  <div
+                    key={model.title}
+                    className="mb-1 rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-4"
+                  >
+                    <div className="mb-3 flex items-center justify-between">
+                      <div>
+                        <h2 className="text-sm font-semibold text-slate-900">{model.title}</h2>
+                        <p className="text-xs text-slate-500">{model.count} requests</p>
+                      </div>
+
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${style.pill}`}
+                      >
+                        {model.rate.toFixed(1)}%
+                      </span>
                     </div>
 
-                    <span className="font-bold text-blue-600">{model.rate.toFixed(1)}%</span>
-                  </div>
+                    <div className={`h-2.5 w-full overflow-hidden rounded-full ${style.track}`}>
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${style.bar} transition-all duration-700`}
+                        style={{ width: `${model.rate}%` }}
+                      />
+                    </div>
 
-                  <div className="h-3 w-full rounded-full bg-gray-200">
-                    <div
-                      className="h-full rounded-full bg-blue-600 transition-all duration-700"
-                      style={{
-                        width: `${model.rate}%`,
-                      }}
-                    />
-                  </div>
+                    <div className="mt-3 flex justify-between text-xs">
+                      <span className="text-slate-500">
+                        Confidence:
+                        <span className={`ml-1 font-semibold ${style.accent}`}>
+                          {model.confidence.toFixed(0)}%
+                        </span>
+                      </span>
 
-                  <div className="mt-2 flex justify-between text-xs text-gray-500">
-                    <span>Confidence: {model.confidence.toFixed(0)}%</span>
-
-                    <span>{(model.responseTime / 1000).toFixed(2)} s</span>
+                      <span className="text-slate-500">
+                        {(model.responseTime / 1000).toFixed(2)} s
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
           {/* search Insights */}
           <div className="card">
             <div className="mb-5">
-              <h1 className="text-xl font-bold">Search Insights</h1>
+              <h1 className="text-base font-semibold">Search Insights</h1>
 
-              <p className="text-sm text-gray-500">Most searched keywords by users</p>
+              <p className="text-muted-foreground text-xs">Most searched keywords by users</p>
             </div>
             <div className="h-[300px] overflow-y-auto pr-2">
               {searchLoading ? (
@@ -747,15 +849,15 @@ export default function AdminDashboard() {
                   {searchTrend.map((trend) => (
                     <div
                       key={trend.id}
-                      className="flex items-center justify-between rounded-xl border border-gray-100 p-3 transition hover:bg-blue-50"
+                      className="hover:bg-accent border-border flex items-center justify-between rounded-xl border p-3 transition"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <div className="bg-primary/10 text-primary flex h-9 w-9 items-center justify-center rounded-full text-sm">
                           #{trend.id}
                         </div>
 
                         <div>
-                          <h2 className="font-medium">{trend.title}</h2>
+                          <h2 className="text-sm font-medium">{trend.title}</h2>
 
                           <p className="text-xs text-gray-500">Search keyword</p>
                         </div>
@@ -779,8 +881,8 @@ export default function AdminDashboard() {
         {/* Top Performing Articles */}
         <div className="mt-5">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold">Top Performing Articles</h1>
-            <button className="rounded-xl bg-blue-500 px-2 py-1">View All Articles</button>
+            <h1 className="text-base font-semibold">Top Performing Articles</h1>
+            <Button className="bg-primary px-2 py-1">View All Articles</Button>
           </div>
           {/* cards */}
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -789,55 +891,103 @@ export default function AdminDashboard() {
             ) : topArticles.length === 0 ? (
               <p className="text-gray-500">No published articles found.</p>
             ) : (
-              topArticles.map((article) => (
-                <div key={article.id} className="card transition hover:shadow-lg">
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="line-clamp-2 text-lg font-semibold">{article.title}</h2>
+              topArticles.map((article, index) => {
+                const performance = (article.avgRating / 5) * 100;
 
-                    <div className="flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1">
-                      <Star size={16} className="fill-yellow-500 text-yellow-500" />
-                      <span className="font-semibold">{Number(article.avgRating).toFixed(1)}</span>
+                const getArticleStyle = (i: number) => {
+                  if (i === 0) {
+                    return {
+                      border: 'border-blue-100',
+                      bg: 'from-blue-50 via-white to-slate-50',
+                      pill: 'bg-blue-100 text-blue-700',
+                      gradient: 'from-[#155EEF] via-[#4C8DFF] to-[#0F9B8E]',
+                      accent: 'text-blue-700',
+                    };
+                  }
+
+                  if (i === 1) {
+                    return {
+                      border: 'border-teal-100',
+                      bg: 'from-teal-50 via-white to-slate-50',
+                      pill: 'bg-teal-100 text-teal-700',
+                      gradient: 'from-[#0F9B8E] via-[#2DD4BF] to-[#155EEF]',
+                      accent: 'text-teal-700',
+                    };
+                  }
+
+                  return {
+                    border: 'border-amber-100',
+                    bg: 'from-amber-50 via-white to-slate-50',
+                    pill: 'bg-amber-100 text-amber-700',
+                    gradient: 'from-[#F59E0B] via-[#FBBF24] to-[#155EEF]',
+                    accent: 'text-amber-700',
+                  };
+                };
+
+                const style = getArticleStyle(index);
+
+                return (
+                  <div
+                    key={article.id}
+                    className={`rounded-2xl border ${style.border} bg-gradient-to-br ${style.bg} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="line-clamp-2 text-sm font-semibold text-slate-900">
+                        {article.title}
+                      </h2>
+
+                      <div className={`rounded-full px-3 py-1 text-xs font-semibold ${style.pill}`}>
+                        ⭐ {Number(article.avgRating).toFixed(1)}
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-xs text-slate-500">Views</p>
+                        <p className={`text-lg font-bold ${style.accent}`}>
+                          {article.views.toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-slate-500">Reviews</p>
+                        <p className="text-lg font-bold text-slate-900">{article.reviewCount}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-slate-500">Rating</p>
+                        <p className="text-lg font-bold text-slate-900">
+                          {Number(article.avgRating).toFixed(1)}/5
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-sm">
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-xs font-medium text-slate-600">
+                          Performance score
+                        </span>
+
+                        <span className={`text-sm font-semibold ${style.accent}`}>
+                          {performance.toFixed(0)}%
+                        </span>
+                      </div>
+
+                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                        <div
+                          className={`h-full rounded-full bg-gradient-to-r ${style.gradient}`}
+                          style={{ width: `${performance}%` }}
+                        />
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                        <span>Reader satisfaction</span>
+                        <span className="font-medium">{article.reviewCount} reviews</span>
+                      </div>
                     </div>
                   </div>
-
-                  <div className="mt-5 grid grid-cols-3 gap-4">
-                    <div>
-                      <p className="text-xs text-gray-500">Views</p>
-                      <p className="text-lg font-bold text-blue-600">
-                        {article.views.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-500">Reviews</p>
-                      <p className="text-lg font-bold">{article.reviewCount}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs text-gray-500">Rating</p>
-                      <p className="text-lg font-bold text-yellow-600">
-                        {Number(article.avgRating).toFixed(1)}/5
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-5">
-                    <div className="mb-1 flex justify-between text-xs">
-                      <span>Performance</span>
-                      <span>{Number(article.avgRating).toFixed(1)}/5</span>
-                    </div>
-
-                    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{
-                          width: `${(article.avgRating / 5) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

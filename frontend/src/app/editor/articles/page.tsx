@@ -13,11 +13,38 @@ import {
   FiStar,
   FiFileText,
   FiSearch,
-  FiFilter,
   FiX,
   FiChevronLeft,
   FiChevronRight,
 } from 'react-icons/fi';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Pencil, Eye, Archive, Trash2 } from 'lucide-react';
 
 type Category = {
   id: string;
@@ -78,9 +105,8 @@ export default function EditorArticles() {
   const [articles, setArticles] = useState<Article[]>([]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<string>('All Statuses');
+  const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
 
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -89,7 +115,7 @@ export default function EditorArticles() {
   const [error, setError] = useState('');
 
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
+    { value: 'All Statuses', label: 'All Statuses' },
     { value: 'DRAFT', label: 'Draft' },
     { value: 'SUBMITTED', label: 'Submitted' },
     { value: 'IN_REVIEW', label: 'In Review' },
@@ -100,7 +126,7 @@ export default function EditorArticles() {
     { value: 'DELETED', label: 'Deleted' },
   ];
   const statusTabs = [
-    { value: 'all', label: 'All' },
+    { value: 'All Statuses', label: 'All' },
     { value: 'DRAFT', label: 'Draft' },
     { value: 'SUBMITTED', label: 'Submitted' },
     { value: 'IN_REVIEW', label: 'In Review' },
@@ -110,6 +136,21 @@ export default function EditorArticles() {
     { value: 'ARCHIVED', label: 'Archived' },
     { value: 'DELETED', label: 'Deleted' },
   ];
+
+  const getStatusBadge = (status: string) => {
+    const map: Record<string, string> = {
+      DRAFT: 'badge badge-draft',
+      SUBMITTED: 'badge badge-submitted',
+      IN_REVIEW: 'badge badge-in-review',
+      APPROVED: 'badge badge-approved',
+      PUBLISHED: 'badge badge-published',
+      REJECTED: 'badge badge-rejected',
+      ARCHIVED: 'badge badge-archived',
+      DELETED: 'badge badge-deleted',
+    };
+
+    return map[status] ?? 'badge';
+  };
 
   const fetchEditorArticles = async () => {
     try {
@@ -130,7 +171,7 @@ export default function EditorArticles() {
   }, []);
 
   const getStatusCount = (status: string) => {
-    if (status === 'all') return articles.length;
+    if (status === 'All Statuses') return articles.length;
 
     return articles.filter((article) => article.status === status).length;
   };
@@ -140,19 +181,26 @@ export default function EditorArticles() {
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       article.slug.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = selectedStatus === 'all' || article.status === selectedStatus;
+    const matchesStatus = selectedStatus === 'All Statuses' || article.status === selectedStatus;
 
     const matchesCategory =
-      selectedCategory === 'all' || article.category?.name === selectedCategory;
+      selectedCategory === 'All Categories' || article.category?.name === selectedCategory;
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  const categories = Array.from(
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, selectedStatus, selectedCategory]);
+
+  const categories: Category[] = Array.from(
     new Map(
       articles
-        .filter((article) => article.category)
-        .map((article) => [article.category!.id, article.category!]),
+        .filter(
+          (article): article is Article & { category: Category } =>
+            article.category !== null && article.category !== undefined,
+        )
+        .map((article) => [article.category.id, article.category]),
     ).values(),
   );
 
@@ -163,46 +211,48 @@ export default function EditorArticles() {
 
   const resetFilters = () => {
     setSearchTerm('');
-    setSelectedStatus('all');
-    setSelectedCategory('all');
+    setSelectedStatus('All Statuses');
+    setSelectedCategory('All Categories');
     setPage(1);
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatRelativeDate = (dateString: string): { relative: string; full: string } => {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    let relative: string;
+
+    if (diffMinutes < 1) {
+      relative = 'Just now';
+    } else if (diffMinutes < 60) {
+      relative = `${diffMinutes}m ago`;
+    } else if (diffHours < 24) {
+      relative = `${diffHours}h ago`;
+    } else if (diffDays < 7) {
+      relative = `${diffDays}d ago`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      relative = weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      relative = months === 1 ? '1 month ago' : `${months} months ago`;
+    } else {
+      const years = Math.floor(diffDays / 365);
+      relative = years === 1 ? '1 year ago' : `${years} years ago`;
+    }
+
+    const full = date.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
-  };
 
-  const getTimeAgo = (date: string) => {
-    const now = new Date();
-    const updatedDate = new Date(date);
-    const difference = now.getTime() - updatedDate.getTime();
-    const minutes = Math.floor(difference / (1000 * 60));
-    const hours = Math.floor(difference / (1000 * 60 * 60));
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days}d ago`;
-    return formatDate(date);
-  };
-
-  const getStatusStyles = (status: string) => {
-    const styles: Record<string, string> = {
-      PUBLISHED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      SUBMITTED: 'bg-blue-50 text-blue-700 border-blue-200',
-      IN_REVIEW: 'bg-amber-50 text-amber-700 border-amber-200',
-      APPROVED: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      REJECTED: 'bg-rose-50 text-rose-700 border-rose-200',
-      DRAFT: 'bg-gray-50 text-gray-600 border-gray-200',
-      ARCHIVED: 'bg-purple-50 text-purple-700 border-purple-200',
-      DELETED: 'bg-red-50 text-red-700 border-red-200',
-    };
-    return styles[status] || styles.DRAFT;
+    return { relative, full };
   };
 
   const getStatusIcon = (status: string) => {
@@ -241,40 +291,16 @@ export default function EditorArticles() {
     return stars;
   };
 
-  const getInitials = (name?: string) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
-  const getEditorName = () => {
-    const name = dashboard?.editor?.name?.trim();
-    if (name) return name.split(' ')[0];
-    return dashboard?.editor?.email?.split('@')[0] || 'Editor';
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return 'Good morning';
-    if (hour >= 12 && hour < 17) return 'Good afternoon';
-    if (hour >= 17 && hour < 22) return 'Good evening';
-    return 'Welcome back';
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-[500px] flex-col items-center justify-center">
         <div className="relative">
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
+          <div className="border-t-primary h-16 w-16 animate-spin rounded-full border-4 border-blue-100"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-blue-600"></div>
+            <div className="bg-primary h-8 w-8 animate-pulse rounded-full"></div>
           </div>
         </div>
-        <p className="mt-6 font-medium text-gray-500">Loading your articles...</p>
+        <p className="text-muted-foreground mt-6 font-medium">Loading your articles...</p>
       </div>
     );
   }
@@ -286,14 +312,9 @@ export default function EditorArticles() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
             <FiAlertCircle className="h-8 w-8 text-rose-500" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Failed to load articles</h3>
-          <p className="text-gray-500">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-blue-600 px-6 py-2 text-white transition hover:bg-blue-700"
-          >
-            Try Again
-          </button>
+          <h3 className="text-foreground mb-2 text-lg font-semibold">Failed to load articles</h3>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try again</Button>
         </div>
       </div>
     );
@@ -303,297 +324,340 @@ export default function EditorArticles() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl">
+      <div>
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold">My Articles</h1>
-            <p className="text-gray-500">
+            <h1 className="text-lg font-bold">My Articles</h1>
+            <p className="text-muted-foreground text-sm">
               Manage your clinical publications, drafts, and review cycles.
             </p>
           </div>
-          <button
-            onClick={() => router.push('/editor/articles/new')}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-white transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
-          >
-            <FiPlus className="h-4 w-4" />
-            <span className="font-medium">New Article</span>
-          </button>
+          <Button onClick={() => router.push('/editor/articles/new')} className="shadow-sm">
+            <FiPlus className="mr-2 h-4 w-4" />
+            New article
+          </Button>
         </div>
 
         {/* Filters Section */}
 
-        <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          {/* Status Tabs */}
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            {/* Status Tabs */}
+            <div className="border-border mb-5 flex items-center gap-1 overflow-x-auto border-b pb-4">
+              {statusTabs.map((tab) => {
+                const count = getStatusCount(tab.value);
+                const isActive = selectedStatus === tab.value;
 
-          <div className="mb-5 flex items-center gap-1 overflow-x-auto border-b border-gray-100 pb-4">
-            {statusTabs.map((tab) => {
-              const count = getStatusCount(tab.value);
-              const isActive = selectedStatus === tab.value;
-
-              return (
-                <button
-                  key={tab.value}
-                  onClick={() => {
-                    setSelectedStatus(tab.value);
-                    setPage(1);
-                  }}
-                  className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
-                    isActive
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
-                  }`}
-                >
-                  {tab.label}
-                  <span className={`ml-1.5 ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
-                    ({count})
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Search and Select Filters */}
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {/* Search */}
-            <div className="relative">
-              <FiSearch className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-
-              <input
-                type="text"
-                placeholder="Search by title or slug..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full rounded-lg border border-gray-200 py-2 pr-4 pl-9 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => {
+                      setSelectedStatus(tab.value);
+                      setPage(1);
+                    }}
+                    className={`rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {tab.label}
+                    <span className={`ml-1.5 ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Status Select */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            {/* Search and Select Filters */}
 
-            {/* Category Select */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-            >
-              <option value="all">All Categories</option>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {/* Search */}
+              <div className="relative">
+                <FiSearch className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                <Input
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="Search by title or slug..."
+                  className="pl-10"
+                />
+              </div>
 
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Results Summary */}
-
-          <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-            <span>
-              Showing <span className="font-semibold text-gray-700">{filteredArticles.length}</span>{' '}
-              articles
-            </span>
-
-            {(searchTerm || selectedStatus !== 'all' || selectedCategory !== 'all') && (
-              <button
-                onClick={resetFilters}
-                className="flex items-center gap-1 text-gray-500 transition hover:text-blue-600"
+              {/* Status Select */}
+              <Select
+                value={selectedStatus}
+                onValueChange={(value) => {
+                  setSelectedStatus(value ?? 'All Statuses');
+                  setPage(1);
+                }}
               >
-                <FiX className="h-4 w-4" />
-                Clear filters
-              </button>
-            )}
-          </div>
-        </div>
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Statuses">All Statuses</SelectItem>
+
+                  {statusOptions
+                    .filter((o) => o.value !== 'All Statuses')
+                    .map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+
+              {/* Category Select */}
+              <Select
+                value={selectedCategory}
+                onValueChange={(value) => {
+                  setSelectedCategory(value ?? 'All Categories');
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="All Categories">All Categories</SelectItem>
+
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Results Summary */}
+
+            <div className="text-muted-foreground mt-4 flex items-center justify-between text-sm">
+              <span>
+                Showing{' '}
+                <span className="text-foreground font-semibold">{filteredArticles.length}</span>{' '}
+                articles
+              </span>
+
+              {(searchTerm ||
+                selectedStatus !== 'All Statuses' ||
+                selectedCategory !== 'All Categories') && (
+                <Button variant="ghost" size="sm" onClick={resetFilters}>
+                  <FiX className="mr-1 h-4 w-4" />
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Articles Table */}
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <Card className="overflow-hidden rounded-2xl">
           {/* Table Header */}
-          <div className="border-b border-gray-100 px-6 py-4">
-            <h2 className="text-lg font-semibold text-gray-800">All Articles</h2>
-          </div>
+          <CardHeader>
+            <CardTitle>All articles</CardTitle>
+            <CardDescription>Manage your clinical knowledge base articles</CardDescription>
+          </CardHeader>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50/80">
-                <tr>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Article
-                  </th>
-                  <th className="hidden px-6 py-3.5 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase sm:table-cell">
-                    Category
-                  </th>
-                  <th className="hidden px-6 py-3.5 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase md:table-cell">
-                    Status
-                  </th>
-                  <th className="hidden px-6 py-3.5 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase lg:table-cell">
-                    Engagement
-                  </th>
-                  <th className="hidden px-6 py-3.5 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase xl:table-cell">
-                    Updated
-                  </th>
-                  <th className="px-6 py-3.5 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
+          <CardContent className="overflow-x-auto p-0">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Article</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Engagement</TableHead>
+                  <TableHead>Updated</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody className="divide-border divide-y">
                 {paginatedArticles.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <div className="flex flex-col items-center gap-2">
-                        <FiFileText className="h-12 w-12 text-gray-300" />
-                        <p className="font-medium text-gray-500">No articles found</p>
-                        <p className="text-sm text-gray-400">
-                          {searchTerm || selectedStatus !== 'all' || selectedCategory !== 'all'
-                            ? 'Try adjusting your filters'
-                            : 'Start by creating your first article'}
-                        </p>
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-12 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <FiFileText className="text-muted-foreground h-12 w-12" />
+                        <div>
+                          <p className="text-foreground font-medium">No articles found</p>
+                          <p className="text-muted-foreground mt-1 text-sm">
+                            {searchTerm ||
+                            selectedStatus !== 'All Statuses' ||
+                            selectedCategory !== 'All Categories'
+                              ? 'Try adjusting your filters'
+                              : 'Start by creating your first article'}
+                          </p>
+                        </div>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   paginatedArticles.map((article) => (
-                    <tr key={article.id} className="group transition-colors hover:bg-gray-50/50">
+                    <TableRow key={article.id} className="hover:bg-muted/40">
                       {/* Title & Slug */}
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="line-clamp-1 font-medium text-gray-800 transition group-hover:text-blue-600">
+                      <TableCell className="py-4">
+                        <div className="space-y-1">
+                          <p className="text-foreground line-clamp-1 font-medium">
                             {article.title}
                           </p>
-                          <p className="mt-0.5 text-xs text-gray-400">{article.slug}</p>
+                          <p className="text-muted-foreground text-xs">{article.slug}</p>
                         </div>
-                      </td>
+                      </TableCell>
 
                       {/* Category */}
-                      <td className="hidden px-6 py-4 sm:table-cell">
-                        <span className="text-sm text-gray-600">
+                      <TableCell className="hidden sm:table-cell">
+                        <span className="text-muted-foreground text-sm">
                           {article.category?.name || 'Uncategorized'}
                         </span>
-                      </td>
+                      </TableCell>
 
                       {/* Status */}
-                      <td className="hidden px-6 py-4 md:table-cell">
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${getStatusStyles(
-                            article.status,
-                          )}`}
-                        >
+                      <TableCell>
+                        <span className={getStatusBadge(article.status)}>
                           {getStatusIcon(article.status)}
                           {formatStatus(article.status)}
                         </span>
-                      </td>
+                      </TableCell>
 
                       {/* Engagement */}
-                      <td className="hidden px-6 py-4 lg:table-cell">
+                      <TableCell className="hidden lg:table-cell">
                         <div className="space-y-1">
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <div className="text-muted-foreground flex items-center gap-3 text-xs">
                             <span className="flex items-center gap-1">
                               <FiEye className="h-3 w-3" />
                               {article.views || 0}
                             </span>
+
                             {article.reviewCount > 0 && (
                               <>
-                                <span className="text-gray-300">|</span>
+                                <span>|</span>
                                 <span className="flex items-center gap-1">
                                   <span className="flex">{renderStars(article.avgRating)}</span>
-                                  <span className="text-gray-400">({article.reviewCount})</span>
+                                  <span>({article.reviewCount})</span>
                                 </span>
                               </>
                             )}
                           </div>
+
                           {article.tags && article.tags.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {article.tags.slice(0, 3).map((tag) => (
                                 <span
                                   key={tag.name}
-                                  className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500"
+                                  className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs"
                                 >
                                   {tag.name}
                                 </span>
                               ))}
+
                               {article.tags.length > 3 && (
-                                <span className="text-xs text-gray-400">
+                                <span className="text-muted-foreground text-xs">
                                   +{article.tags.length - 3}
                                 </span>
                               )}
                             </div>
                           )}
                         </div>
-                      </td>
+                      </TableCell>
 
                       {/* Updated */}
-                      <td className="hidden px-6 py-4 xl:table-cell">
-                        <div className="text-sm text-gray-500">
-                          <div>{getTimeAgo(article.updatedAt)}</div>
-                          <div className="text-xs text-gray-400">
-                            {formatDate(article.updatedAt)}
-                          </div>
-                        </div>
-                      </td>
+                      <TableCell className="hidden xl:table-cell">
+                        {(() => {
+                          const updated = formatRelativeDate(article.updatedAt);
+
+                          return (
+                            <div className="text-muted-foreground text-sm">
+                              <div className="text-foreground text-xs font-medium">
+                                {updated.relative}
+                              </div>
+                              <div className="text-xs">{updated.full}</div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
 
                       {/* Action */}
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => router.push(`/editor/articles/${article.id}`)}
-                            className="rounded-lg bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-600 transition group-hover:shadow-sm hover:bg-blue-100"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => router.push(`/articles/${article.slug}`)}
-                            className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-                          >
-                            <FiEye className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Open article actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/editor/articles/${article.id}`)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Edit article
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/articles/${article.slug}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                              View article
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                              onClick={() => {
+                                // archive action
+                              }}
+                            >
+                              <Archive className="h-4 w-4" />
+                              Archive article
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => {
+                                // delete action
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete article
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
-          </div>
+              </TableBody>
+            </Table>
+          </CardContent>
 
           {/* Pagination */}
-          <div className="flex flex-col gap-4 border-t border-gray-100 bg-gray-50/50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-gray-600">
+          <div className="border-border bg-accent flex flex-col gap-4 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-muted-foreground text-sm">
               Showing <span className="font-semibold">{startItem}</span> to{' '}
               <span className="font-semibold">{endItem}</span> of{' '}
               <span className="font-semibold">{filteredArticles.length}</span> articles
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="icon-sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FiChevronLeft className="h-4 w-4" />
-              </button>
+              </Button>
 
               {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
                 let pageNumber: number;
@@ -607,37 +671,35 @@ export default function EditorArticles() {
                   pageNumber = page - 3 + i;
                 }
                 return (
-                  <button
+                  <Button
                     key={pageNumber}
+                    variant={page === pageNumber ? 'default' : 'outline'}
+                    size="icon-sm"
                     onClick={() => setPage(pageNumber)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
-                      page === pageNumber
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-gray-200 bg-white hover:bg-gray-50'
-                    }`}
                   >
                     {pageNumber}
-                  </button>
+                  </Button>
                 );
               })}
 
-              <button
+              <Button
+                variant="outline"
+                size="icon-sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages || totalPages === 0}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <FiChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <span>Items per page:</span>
-              <span className="rounded border border-gray-200 bg-white px-2 py-1 font-medium text-gray-700">
+              <span className="border-border bg-card text-foreground rounded border px-2 py-1 font-medium">
                 {limit}
               </span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

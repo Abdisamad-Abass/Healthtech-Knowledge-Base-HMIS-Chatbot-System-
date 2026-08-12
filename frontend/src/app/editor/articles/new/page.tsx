@@ -32,12 +32,16 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from '@/components/ui/select';
 
 interface Category {
@@ -263,39 +267,25 @@ export default function CreateArticle() {
   return (
     <div className="min-h-screen pb-10">
       {/* HEADER */}
-      <div className="flex flex-col gap-4 border-b border-gray-200 pb-5 md:flex-row md:items-center md:justify-between">
+      <div className="border-border flex flex-col gap-4 border-b pb-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Create New Article</h1>
+          <h1 className="text-foreground text-xl font-bold">Create New Article</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-muted-foreground mt-1 text-sm">
             Create knowledge base content and submit it for administrative review.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* SAVE DRAFT */}
-          <button
-            type="button"
-            onClick={() => handleCreate(false)}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+          <Button variant="outline" onClick={() => handleCreate(false)} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {loading ? 'Saving...' : 'Save as draft'}
+          </Button>
 
-            {loading ? 'Saving...' : 'Save as Draft'}
-          </button>
-
-          {/* SUBMIT */}
-          <button
-            type="button"
-            onClick={() => handleCreate(true)}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-
-            {loading ? 'Submitting...' : 'Submit for Review'}
-          </button>
+          <Button onClick={() => handleCreate(true)} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {loading ? 'Submitting...' : 'Submit for review'}
+          </Button>
         </div>
       </div>
 
@@ -305,26 +295,31 @@ export default function CreateArticle() {
         <div className="min-w-0">
           {/* TITLE */}
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">Article Title</label>
-
-            <input
-              type="text"
+            <Label className="mb-2" required>
+              Article title
+            </Label>
+            <Input
               value={formData.title}
-              onChange={(event) => updateField('title', event.target.value)}
+              onChange={(e) => updateField('title', e.target.value)}
               placeholder="e.g. How to Reset HMIS Password"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-lg shadow-sm transition outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="h-12 text-base"
             />
           </div>
 
           {/* EDITOR */}
-          <div className="mt-6">
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
-              Article Content
-            </label>
+          <Card className="mt-6">
+            <CardHeader>
+              <Label className="text-base" required>
+                Article content
+              </Label>
+              <CardDescription>
+                Write and format the content for your knowledge base article.
+              </CardDescription>
+            </CardHeader>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <CardContent className="overflow-hidden p-0">
               {/* TOOLBAR */}
-              <div className="flex flex-wrap items-center gap-1 border-b border-gray-200 bg-gray-50 p-3">
+              <div className="border-border bg-muted flex flex-wrap items-center gap-1 border-b p-3">
                 {/* UNDO */}
                 <button
                   type="button"
@@ -523,127 +518,130 @@ export default function CreateArticle() {
               {/* EDITOR CONTENT */}
               <EditorContent
                 editor={editor}
-                className="prose max-w-none p-6 [&_.ProseMirror]:min-h-[420px] [&_.ProseMirror]:cursor-text [&_.ProseMirror]:outline-none [&_.ProseMirror_blockquote]:my-4 [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-blue-500 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h1]:my-4 [&_.ProseMirror_h1]:text-4xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h2]:my-3 [&_.ProseMirror_h2]:text-3xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_p]:leading-7 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6"
+                className="prose prose-neutral dark:prose-invert [&_.ProseMirror]:text-foreground [&_.ProseMirror_h1]:text-foreground [&_.ProseMirror_h2]:text-foreground [&_.ProseMirror_p]:text-foreground [&_.ProseMirror_blockquote]:border-primary [&_.ProseMirror_blockquote]:bg-primary-soft [&_.ProseMirror_blockquote]:text-foreground max-w-none p-6 [&_.ProseMirror]:min-h-[420px] [&_.ProseMirror]:outline-none"
               />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* RIGHT SIDE - METADATA */}
-        <aside className="h-fit rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="mb-5 border-b border-gray-200 pb-4">
-            <h2 className="text-lg font-bold text-gray-900">Article Metadata</h2>
-
-            <p className="mt-1 text-xs text-gray-500">
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle>Article metadata</CardTitle>
+            <CardDescription>
               Add information to help organize and search this article.
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* CATEGORY */}
+            <div className="flex flex-col gap-2">
+              <Label required>Category</Label>
 
-          {/* CATEGORY */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-semibold text-gray-700">Category</label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => updateField('category', value ?? '')}
+              >
+                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
 
-            <Select
-              value={formData.category}
-              onValueChange={(value) => updateField('category', value)}
-            >
-              <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.name}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* PRODUCT */}
+            <div className="mt-5 flex flex-col gap-2">
+              <Label required>Product</Label>
 
-          {/* PRODUCT */}
-          <div className="mt-5 flex flex-col gap-2">
-            <label className="text-sm font-semibold text-gray-700">Product</label>
+              <Select
+                value={formData.product}
+                onValueChange={(value) => updateField('product', value ?? 'HMIS')}
+              >
+                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                  <SelectValue placeholder="Select product" />
+                </SelectTrigger>
 
-            <Select
-              value={formData.product}
-              onValueChange={(value) => updateField('product', value)}
-            >
-              <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
-                <SelectValue placeholder="Select product" />
-              </SelectTrigger>
+                <SelectContent>
+                  {PRODUCTS.map((product) => (
+                    <SelectItem key={product} value={product}>
+                      {product}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <SelectContent>
-                {PRODUCTS.map((product) => (
-                  <SelectItem key={product} value={product}>
-                    {product}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* ARTICLE TYPE */}
+            <div className="mt-5 flex flex-col gap-2">
+              <Label required>Article Type</Label>
 
-          {/* ARTICLE TYPE */}
-          <div className="mt-5 flex flex-col gap-2">
-            <label className="text-sm font-semibold text-gray-700">Article Type</label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => updateField('type', value ?? 'FAQ')}
+              >
+                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                  <SelectValue placeholder="Select article type" />
+                </SelectTrigger>
 
-            <Select value={formData.type} onValueChange={(value) => updateField('type', value)}>
-              <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
-                <SelectValue placeholder="Select article type" />
-              </SelectTrigger>
+                <SelectContent>
+                  {ARTICLE_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.replaceAll('_', ' ')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <SelectContent>
-                {ARTICLE_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.replaceAll('_', ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* TAGS */}
+            <div className="mt-5 flex flex-col gap-2">
+              <Label required>Tags</Label>
 
-          {/* TAGS */}
-          <div className="mt-5 flex flex-col gap-2">
-            <label className="text-sm font-semibold text-gray-700">Tags</label>
+              <Input
+                value={formData.tags}
+                onChange={(e) => updateField('tags', e.target.value)}
+                placeholder="password, login, account"
+              />
 
-            <input
-              type="text"
-              value={formData.tags}
-              onChange={(event) => updateField('tags', event.target.value)}
-              placeholder="password, login, account"
-              className="h-11 rounded-xl border border-gray-300 px-3 text-sm transition outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            />
+              <p className="text-muted-foreground text-shadow-xs">
+                Separate multiple tags using commas.
+              </p>
+            </div>
 
-            <p className="text-xs text-gray-400">Separate multiple tags using commas.</p>
-          </div>
+            {/* WORKFLOW INFO */}
+            <div className="border-info-border bg-info-bg rounded-xl border p-4">
+              <h3 className="text-info text-sm font-semibold">Editorial Workflow</h3>
 
-          {/* WORKFLOW INFO */}
-          <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <h3 className="text-sm font-semibold text-blue-900">Editorial Workflow</h3>
+              <div className="text-foreground mt-3 space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="bg-status-draft h-2 w-2 rounded-full" />
+                  Save as Draft
+                </div>
 
-            <div className="mt-3 space-y-2 text-xs text-blue-800">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-gray-400" />
-                Save as Draft
-              </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-status-submitted h-2 w-2 rounded-full" />
+                  Submit for Review
+                </div>
 
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-blue-500" />
-                Submit for Review
-              </div>
+                <div className="flex items-center gap-2">
+                  <span className="bg-status-in-review h-2 w-2 rounded-full" />
+                  Admin Review
+                </div>
 
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-yellow-500" />
-                Admin Review
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-500" />
-                Approval & Publication
+                <div className="flex items-center gap-2">
+                  <span className="bg-status-published h-2 w-2 rounded-full" />
+                  Approval & Publication
+                </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

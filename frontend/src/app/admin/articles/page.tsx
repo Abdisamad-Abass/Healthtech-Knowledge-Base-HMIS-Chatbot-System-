@@ -41,24 +41,66 @@ interface Pagination {
 }
 
 interface ArticleResponse {
-  role: string;
   articles: Article[];
   pagination: Pagination;
 }
 
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
-import { SlidersHorizontal, Star, ChevronLeft, ChevronRight, CircleCheckBig } from 'lucide-react';
+import {
+  SlidersHorizontal,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  CircleCheckBig,
+  BookOpenCheck,
+  Clock3,
+  Eye,
+  Plus,
+} from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+import { MoreHorizontal, Pencil, Archive, Trash2 } from 'lucide-react';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Articles() {
+  const router = useRouter();
   const [articles, setArticles] = useState<Article[]>([]);
 
   const [search, setSearch] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedType, setSelectedType] = useState('');
-  const [role, setRole] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [showFilters, setShowFilters] = useState(true);
   const [page, setPage] = useState(1);
@@ -110,7 +152,6 @@ export default function Articles() {
         },
       });
 
-      setRole(res.data.role);
       setArticles(res.data.articles);
       setPagination(res.data.pagination);
     } catch (error) {
@@ -161,90 +202,151 @@ export default function Articles() {
   ];
   const reviews = [
     {
-      icon: CircleCheckBig,
+      icon: BookOpenCheck,
       number: articles.filter((a) => a.status === 'PUBLISHED').length,
       name: 'Live Articles',
+      comment: 'Currently published and available to viewers',
+      iconBg: 'bg-[var(--success-bg)]',
+      iconColor: 'text-[var(--success)]',
     },
     {
-      icon: CircleCheckBig,
+      icon: Clock3,
       number: articles.filter(
         (a) => a.status === 'SUBMITTED' || a.status === 'IN_REVIEW' || a.status === 'APPROVED',
       ).length,
       name: 'Pending Review',
+      comment: 'Awaiting editorial review, approval, or publication',
+      iconBg: 'bg-[var(--warning-bg)]',
+      iconColor: 'text-[var(--warning)]',
     },
     {
-      icon: CircleCheckBig,
+      icon: Eye,
       number: articles.reduce((sum, article) => sum + article.views, 0),
       name: 'Total Reads',
+      comment: 'Lifetime article views across the knowledge base',
+      iconBg: 'bg-[var(--info-bg)]',
+      iconColor: 'text-[var(--info)]',
     },
   ];
 
-  const formatRelativeDate = (dateString: string) => {
+  const statusStyles: Record<string, string> = {
+    DRAFT: 'badge badge-draft',
+    SUBMITTED: 'badge badge-submitted',
+    IN_REVIEW: 'badge badge-in-review',
+    APPROVED: 'badge badge-approved',
+    PUBLISHED: 'badge badge-published',
+    REJECTED: 'badge badge-rejected',
+    ARCHIVED: 'badge badge-archived',
+    DELETED: 'badge badge-deleted',
+  };
+
+  const formatRelativeDate = (dateString: string): { relative: string; full: string } => {
     const date = new Date(dateString);
     const now = new Date();
 
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
+    let relative: string;
+
     if (diffInSeconds < 60) {
-      return 'Just now';
+      relative = 'Just now';
+    } else {
+      const diffInMinutes = Math.floor(diffInSeconds / 60);
+
+      if (diffInMinutes < 60) {
+        relative = `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
+      } else {
+        const diffInHours = Math.floor(diffInMinutes / 60);
+
+        if (diffInHours < 24) {
+          relative = `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+        } else {
+          const diffInDays = Math.floor(diffInHours / 24);
+
+          if (diffInDays < 7) {
+            relative = `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+          } else {
+            const diffInWeeks = Math.floor(diffInDays / 7);
+
+            if (diffInWeeks < 4) {
+              relative = `${diffInWeeks} ${diffInWeeks === 1 ? 'week' : 'weeks'} ago`;
+            } else {
+              const diffInMonths = Math.floor(diffInDays / 30);
+
+              if (diffInMonths < 12) {
+                relative = `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
+              } else {
+                const diffInYears = Math.floor(diffInDays / 365);
+                relative = `${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago`;
+              }
+            }
+          }
+        }
+      }
     }
 
-    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const full = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} ${diffInMinutes === 1 ? 'minute' : 'minutes'} ago`;
+    return { relative, full };
+  };
+
+  const handleArchive = async (articleId: string) => {
+    const confirmed = window.confirm('Are you sure you want to archive this article?');
+
+    if (!confirmed) return;
+
+    try {
+      await api.put(`/articles/${articleId}/archive`);
+
+      // Refresh the table
+      fetchArticles();
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.response?.data?.message || 'Failed to archive article.');
     }
+  };
 
-    const diffInHours = Math.floor(diffInMinutes / 60);
+  const handleDelete = async (articleId: string) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this article? This action cannot be undone.',
+    );
 
-    if (diffInHours < 24) {
-      return `${diffInHours} ${diffInHours === 1 ? 'hour' : 'hours'} ago`;
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/articles/${articleId}`);
+
+      // Refresh the table
+      fetchArticles();
+    } catch (error: any) {
+      console.error(error);
+      alert(error?.response?.data?.message || 'Failed to delete article.');
     }
-
-    const diffInDays = Math.floor(diffInHours / 24);
-
-    if (diffInDays < 7) {
-      return `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
-    }
-
-    const diffInWeeks = Math.floor(diffInDays / 7);
-
-    if (diffInWeeks < 4) {
-      return `${diffInWeeks} ${diffInWeeks === 1 ? 'week' : 'weeks'} ago`;
-    }
-
-    const diffInMonths = Math.floor(diffInDays / 30);
-
-    if (diffInMonths < 12) {
-      return `${diffInMonths} ${diffInMonths === 1 ? 'month' : 'months'} ago`;
-    }
-
-    const diffInYears = Math.floor(diffInDays / 365);
-
-    const formattedDate = date.toLocaleDateString();
-
-    return `${diffInYears} ${diffInYears === 1 ? 'year' : 'years'} ago · ${formattedDate}`;
   };
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto w-full min-w-0">
+        {/* header */}
         <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-4xl font-bold">Knowledge Base</h1>
-
-          <div className="">
-            <button className="rounded-full bg-blue-600 px-5 py-2 text-white">Role: {role}</button>
-            {role === 'EDITOR' || role === 'ADMIN' ? (
-              <Link
-                href="/admin/articles/create"
-                className="mb-6 ml-2 inline-block rounded-xl bg-green-600 px-6 py-3 text-white"
-              >
-                + Create Article
-              </Link>
-            ) : null}
+          <div>
+            <h1 className="text-foreground text-lg font-bold">Knowledge Base Articles</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Manage articles, documentation, SOPs, FAQs, and troubleshooting guides.
+            </p>
           </div>
-        </div>
 
+          <Button>
+            <Link href="/admin/articles/create" className="flex items-center gap-2">
+              <Plus size={18} />
+              Create Article
+            </Link>
+          </Button>
+        </div>
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">Filters</h2>
@@ -258,185 +360,286 @@ export default function Articles() {
             <span>{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
           </button>
         </div>
-
         {/* filters */}
         {showFilters && (
-          <section className="card">
-            <div className="flex items-center justify-between gap-2">
+          <section className="card border-border bg-gradient-to-br from-white to-slate-50">
+            <div className="flex justify-between">
               {/* Search */}
-              <div className="flex flex-col gap-2">
-                <label>Search Title/Slug</label>
-                <input
+              <div className="flex flex-col gap-2 lg:col-span-2">
+                <Label htmlFor="search" className="text-sm font-medium text-slate-700">
+                  Search title or slug
+                </Label>
+                <Input
+                  id="search"
                   type="text"
                   placeholder="Search title or slug..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="rounded-lg border px-2 py-1"
+                  className=""
                 />
               </div>
+
               {/* Status */}
               <div className="flex flex-col gap-2">
-                <label>Status</label>
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 outline-none focus:border-0 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                <Label className="text-sm font-medium text-slate-700">Status</Label>
+                <Select
+                  value={selectedStatus || null}
+                  onValueChange={(value) => setSelectedStatus(value ?? '')}
                 >
-                  <option value="">All Statuses</option>
-                  {ArticleStatus.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__" disabled>
+                      All statuses
+                    </SelectItem>
+                    {ArticleStatus.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {item.replaceAll('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
               {/* Categories */}
               <div className="flex flex-col gap-2">
-                <label>Categories</label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="rounded-lg border border-gray-300 px-4 py-1 outline-none focus:border-none focus:border-blue-600 focus:ring-2 focus:ring-blue-700"
+                <Label className="text-sm font-medium text-slate-700">Category</Label>
+                <Select
+                  value={selectedCategory || null}
+                  onValueChange={(value) => setSelectedCategory(value ?? '')}
                 >
-                  <option value="">All Categories</option>
-                  {categories.map((item, index) => (
-                    <option key={index} value={item.name}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__" disabled>
+                      All categories
+                    </SelectItem>
+                    {categories.map((item) => (
+                      <SelectItem key={item.id} value={item.name}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {/* types */}
+
+              {/* Types */}
               <div className="flex flex-col gap-2">
-                <label>Types</label>
-                <select
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                  className="rounded-lg border border-gray-400 px-4 py-1 outline-none focus:border-0 focus:border-blue-500 focus:ring-2 focus:ring-blue-700"
+                <Label className="text-sm font-medium text-slate-700">Article type</Label>
+                <Select
+                  value={selectedType || null}
+                  onValueChange={(value) => setSelectedType(value ?? '')}
                 >
-                  <option value="">All Types</option>
-                  {ARTICLE_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type.replaceAll('_', ' ')}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__" disabled>
+                      All types
+                    </SelectItem>
+                    {ARTICLE_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type.replaceAll('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              {/* Reset */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={resetFilters}
-                  className="rounded-lg bg-gray-500 px-4 py-1 font-medium"
-                >
+
+              {/* Reset button aligned with inputs */}
+              <div className="flex flex-col justify-end">
+                <Button variant="outline" onClick={resetFilters} className="">
                   Reset
-                </button>
+                </Button>
               </div>
             </div>
           </section>
         )}
+
         {/* table */}
-        <section className="mt-6 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead className="bg-gray-200">
-                <tr>
+            <Table className="w-full border-collapse">
+              <TableCaption className="sr-only">Knowledge base articles</TableCaption>
+
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
                   {articleDetails.map((column) => (
-                    <th
+                    <TableHead
                       key={column.key}
-                      className="border-b border-gray-200 px-6 py-4 text-left text-sm font-semibold text-gray-700"
+                      className="border-b border-gray-200 px-6 py-4 text-left text-xs font-semibold text-gray-700"
                     >
                       {column.label}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
+                </TableRow>
+              </TableHeader>
 
-              <tbody>
-                {articles.map((article) => (
-                  <tr
-                    key={article.id}
-                    className="border-b border-gray-200 transition hover:bg-blue-50"
-                  >
-                    {/* Title & Slug */}
-                    <td className="px-6 py-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{article.title}</h3>
-                        <p className="text-xs text-gray-500">{article.slug}</p>
-                      </div>
-                    </td>
+              <TableBody>
+                {articles.length > 0 ? (
+                  articles.map((article) => (
+                    <TableRow key={article.id}>
+                      {/* Title & Slug */}
+                      <TableCell className="w-[24%] max-w-[260px]">
+                        <div className="min-w-0">
+                          <p className="text-foreground line-clamp-2 text-xs leading-5 font-semibold">
+                            {article.title}
+                          </p>
+                          <p className="text-muted-foreground mt-1 truncate text-xs">
+                            {article.slug}
+                          </p>
+                        </div>
+                      </TableCell>
 
-                    {/* Category */}
-                    <td className="px-6 py-4">{article.category?.name}</td>
+                      {/* Category */}
+                      <TableCell>
+                        <span className="text-muted-foreground text-xs">
+                          {article.category?.name || 'Uncategorized'}
+                        </span>
+                      </TableCell>
 
-                    {/* Author */}
-                    <td className="px-6 py-4">{article.author?.name}</td>
+                      {/* Author */}
+                      <TableCell>
+                        <div>
+                          <p className="text-foreground text-xs font-medium">
+                            {article.author?.name || 'Unknown'}
+                          </p>
+                          <p className="text-muted-foreground mt-0.5 text-xs">
+                            {article.author?.email}
+                          </p>
+                        </div>
+                      </TableCell>
 
-                    {/* Status */}
-                    <td className="px-6 py-4">
-                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                        {article.status}
-                      </span>
-                    </td>
+                      {/* Status */}
+                      <TableCell>
+                        <span className={statusStyles[article.status] || 'badge badge-draft'}>
+                          <span className="badge-dot bg-current text-sm" />
+                          {article.status.replaceAll('_', ' ')}
+                        </span>
+                      </TableCell>
 
-                    {/* Engagement */}
-                    <td className="px-6 py-4">
-                      <div>{article.views} Views</div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Star
-                          size={16}
-                          fill={article.reviewCount > 0 ? 'currentColor' : 'none'}
-                          className={article.reviewCount > 0 ? 'text-yellow-500' : 'text-gray-300'}
-                        />
+                      {/* Engagement */}
+                      <TableCell>
+                        <div>
+                          <p className="text-foreground text-xs font-medium">
+                            {article.views.toLocaleString()} views
+                          </p>
 
-                        {article.reviewCount > 0 ? (
-                          <>
-                            <span className="font-medium">{article.avgRating.toFixed(1)}</span>
+                          <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                            <Star
+                              size={14}
+                              fill={article.reviewCount > 0 ? 'currentColor' : 'none'}
+                              className={
+                                article.reviewCount > 0
+                                  ? 'text-yellow-500'
+                                  : 'text-muted-foreground'
+                              }
+                            />
 
-                            <span className="text-gray-500">({article.reviewCount})</span>
-                          </>
-                        ) : (
-                          <span className="text-gray-400">No ratings</span>
-                        )}
-                      </div>
-                    </td>
+                            {article.reviewCount > 0 ? (
+                              <>
+                                <span className="text-foreground font-medium">
+                                  {article.avgRating.toFixed(1)}
+                                </span>
+                                <span>({article.reviewCount})</span>
+                              </>
+                            ) : (
+                              <span>No ratings</span>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
 
-                    {/* Last Updated */}
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-700">
-                        {formatRelativeDate(article.updatedAt)}
-                      </span>
-                    </td>
+                      {/* Last Updated */}
+                      <TableCell>
+                        {(() => {
+                          const updated = formatRelativeDate(article.updatedAt);
 
-                    {/* Actions */}
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/admin/articles/${article.id}`}
-                          className="rounded-lg bg-blue-100 px-3 py-1 text-sm text-blue-700 transition hover:bg-blue-200"
-                        >
-                          View
-                        </Link>
+                          return (
+                            <div className="text-muted-foreground text-xs">
+                              <div className="text-foreground font-medium">{updated.relative}</div>
+                              <div className="mt-0.5">{updated.full}</div>
+                            </div>
+                          );
+                        })()}
+                      </TableCell>
 
-                        <Link
-                          href={`/admin/articles/${article.id}/edit`}
-                          className="rounded-lg bg-amber-100 px-3 py-1 text-sm text-amber-700 transition hover:bg-amber-200"
-                        >
-                          Edit
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      {/* Actions */}
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
+                            aria-label="Open actions menu"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="bg-card border-border w-52 rounded-xl border shadow-lg"
+                          >
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/admin/articles/${article.id}`)}
+                              className="flex cursor-pointer items-center gap-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                              View article
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                              onClick={() => router.push(`/admin/articles/${article.id}/edit`)}
+                              className="flex cursor-pointer items-center gap-2"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Edit article
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                              onClick={() => handleArchive(article.id)}
+                              className="flex cursor-pointer items-center gap-2"
+                            >
+                              <Archive className="h-4 w-4" />
+                              Archive
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+
+                            <DropdownMenuItem
+                              onClick={() => handleDelete(article.id)}
+                              className="text-destructive focus:bg-destructive/10 flex cursor-pointer items-center gap-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete article
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-muted-foreground h-32 text-center">
+                      No articles found.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
+
           {/* Pagination */}
-          <div className="mt-4 flex flex-col gap-4 rounded-b-2xl border border-t-0 border-gray-200 bg-white px-6 py-4 md:flex-row md:items-center md:justify-between">
+          <div className="border-border bg-background flex flex-col gap-4 border-t px-6 py-4 md:flex-row md:items-center md:justify-between">
             {/* Results Info */}
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold">{startItem}</span> to{' '}
-              <span className="font-semibold">{endItem}</span> of{' '}
-              <span className="font-semibold">{pagination.total}</span> articles
+            <div className="text-muted-foreground text-sm">
+              Showing <span className="text-foreground font-semibold">{startItem}</span> to{' '}
+              <span className="text-foreground font-semibold">{endItem}</span> of{' '}
+              <span className="text-foreground font-semibold">{pagination.total}</span> articles
             </div>
 
             {/* Page Numbers */}
@@ -444,19 +647,19 @@ export default function Articles() {
               <button
                 disabled={!pagination.hasPrevious}
                 onClick={() => setPage((prev) => prev - 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                className="border-border hover:bg-muted flex h-9 w-9 items-center justify-center rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <ChevronLeft />
+                <ChevronLeft size={18} />
               </button>
 
               {pageNumbers.map((pageNumber) => (
                 <button
                   key={pageNumber}
                   onClick={() => setPage(pageNumber)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg border transition ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
                     page === pageNumber
-                      ? 'bg-blue-600 text-white'
-                      : 'border-gray-300 hover:bg-gray-100'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border hover:bg-muted'
                   }`}
                 >
                   {pageNumber}
@@ -466,65 +669,47 @@ export default function Articles() {
               <button
                 disabled={!pagination.hasNext}
                 onClick={() => setPage((prev) => prev + 1)}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                className="border-border hover:bg-muted flex h-9 w-9 items-center justify-center rounded-lg border transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <ChevronRight />
+                <ChevronRight size={18} />
               </button>
             </div>
 
             {/* Items Per Page */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Items per page</span>
-              <p className="rounded bg-gray-200 px-2 py-1">{pagination.limit}</p>
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <span>Items per page</span>
+
+              <span className="bg-muted text-foreground rounded-md px-2.5 py-1 font-medium">
+                {pagination.limit}
+              </span>
             </div>
           </div>
         </section>
 
         {/* Reviews */}
-        <div className="mt-5 grid grid-cols-3 gap-5">
+        <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
           {reviews.map((review, index) => (
-            <div key={index} className="card">
-              <div className="flex items-center gap-8 px-2">
-                <review.icon className="text-blue-600" size={28} />
+            <Card key={index} className="border-border bg-card shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className={`rounded-xl p-3 ${review.iconBg}`}>
+                    <review.icon className={review.iconColor} size={22} strokeWidth={2} />
+                  </div>
 
-                <div>
-                  <h2 className="text-center text-2xl font-bold">{review.number}</h2>
-                  <p className="text-gray-600">{review.name}</p>
+                  <div className="min-w-0">
+                    <p className="text-muted-foreground text-sm font-medium">{review.name}</p>
+
+                    <h2 className="text-foreground mt-1 text-3xl font-bold tracking-tight">
+                      {review.number.toLocaleString()}
+                    </h2>
+
+                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+                      {review.comment}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Backend */}
-        <div className="mt-5 grid gap-6 md:grid-cols-2">
-          {articles.map((a) => (
-            <div key={a.id} className="rounded-3xl border bg-white p-7 shadow-xl">
-              <h2 className="text-xl font-bold">{a.title}</h2>
-
-              <p className="mt-3 text-gray-600">{a.content.substring(0, 120)}...</p>
-
-              <div className="mt-5 space-y-2 text-sm">
-                <p>
-                  Category:
-                  {a.category?.name}
-                </p>
-
-                <p>
-                  Author:
-                  {a.author?.name}
-                </p>
-
-                <p>
-                  Status:
-                  <span className="font-bold">{a.status}</span>
-                </p>
-              </div>
-
-              <a href={`/articles/${a.id}`} className="mt-5 inline-block text-blue-600">
-                Read Article →
-              </a>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>

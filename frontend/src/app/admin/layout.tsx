@@ -1,5 +1,4 @@
 'use client';
-import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
@@ -10,14 +9,16 @@ import {
   History,
   MessageCircleQuestion,
   UserCircle,
-  Search,
   LogOut,
   LifeBuoy,
   Settings,
+  Plus,
+  ShieldPlus,
 } from 'lucide-react';
 
 import api from '@/lib/api';
-import AdminNavbar from '@/components/AdminNavbar';
+import AdminNavbar from '@/components/navbar/AdminNavbar';
+import { Button } from '@/components/ui/button';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -81,24 +82,34 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <main className="flex min-h-screen">
       {/* left sidebar */}
-      <aside className="fixed top-0 left-0 h-screen w-64 border-r border-gray-300 bg-[#F3F3FC]">
-        <div className="flex h-full flex-col p-3">
+      <aside className="border-sidebar-border bg-sidebar fixed top-0 left-0 h-screen w-60 border-r">
+        <div className="flex h-full flex-col px-3 py-4">
           {/* Logo */}
-          <header>
-            <h1 className="text-2xl font-bold text-[#0F52BA]">HealthTech Admin</h1>
-            <p className="text-sm text-gray-500">System Oversight</p>
+          <header className="border-sidebar-border mb-2 border-b pb-5">
+            <Link href="/admin/dashboard" className="group flex items-center gap-3">
+              <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-all duration-200 group-hover:scale-105 group-hover:shadow-md">
+                <ShieldPlus className="h-6 w-6" />
+              </div>
+
+              <div className="min-w-0">
+                <h1 className="text-foreground text-sm leading-tight font-bold">HealthTech KB</h1>
+                <p className="text-muted-foreground text-xs">Knowledge Management</p>
+              </div>
+            </Link>
           </header>
 
           {/* Navigation */}
-          <nav className="mt-8 flex scrollbar-thin scrollbar-thumb-transparent scrollbar-track-transparent flex-col gap-2 overflow-y-auto hover:scrollbar-thumb-gray-300">
+          <nav className="flex scrollbar-thin scrollbar-thumb-transparent scrollbar-track-transparent flex-col gap-2 overflow-y-auto hover:scrollbar-thumb-gray-300">
             {links.map((link) => {
               const active = pathname === link.href;
               return (
                 <Link
                   href={link.href}
                   key={link.href}
-                  className={`rounded-xl px-4 py-3 font-medium transition-all ${
-                    active ? 'bg-[#82aeef] text-white shadow-md' : 'text-gray-700 hover:bg-blue-100'
+                  className={`rounded-lg px-2 py-3 text-xs font-medium transition-all ${
+                    active
+                      ? 'border-primary bg-primary/10 text-primary border-r-4'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -110,50 +121,51 @@ export default function Layout({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          {/* Bottom Section */}
-          <div className="mt-auto border-t border-gray-200 pt-4">
-            {/* Create Article */}
-            <Link
-              href="/admin/articles/create"
-              className="mb-3 flex w-full items-center justify-center rounded-xl bg-[#0F52BA] px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-            >
-              Create Article
-            </Link>
+          {/* Bottom section */}
+          <div className="border-sidebar-border mt-auto border-t pt-4">
+            <Button className="mb-3 w-full justify-start">
+              <Link href="/admin/articles/create" className="flex w-full items-center gap-2">
+                <Plus size={18} />
+                Create article
+              </Link>
+            </Button>
 
-            {/* Support */}
             <button
               type="button"
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-blue-100 hover:text-[#0F52BA]"
+              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200"
             >
               <LifeBuoy size={18} />
-              <span>Support</span>
+              Support
             </button>
 
-            {/* Logout */}
             <button
               type="button"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="mt-1 flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+              className="text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <LogOut size={18} />
-
-              <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+              {loggingOut ? 'Logging out...' : 'Logout'}
             </button>
           </div>
         </div>
       </aside>
 
       {/* Right Side */}
-      <div className="ml-64 flex-1">
+      <div className="ml-60 min-w-0 flex-1">
         {/* top Navbar */}
         <AdminNavbar />
 
-        {/* Current Page */}
-        <main className="min-h-screen bg-[#FAF8FF] p-8 pt-20">{children}</main>
+        {/* Main Pages */}
+        <main className="bg-background min-h-screen min-w-0 overflow-x-hidden p-6 pt-20">
+          {children}
+        </main>
         {/* Footer */}
-        <footer className="border-t bg-white px-6 py-4 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} HealthTech Knowledge Base. All rights reserved.
+        <footer className="border-border bg-card text-muted-foreground border-t px-6 py-4">
+          <div className="flex flex-col items-center justify-between gap-2 text-sm sm:flex-row">
+            <p>© {new Date().getFullYear()} HealthTech Knowledge Base</p>
+            <p className="text-xs">Clinical Precision • Knowledge Management Platform</p>
+          </div>
         </footer>
       </div>
     </main>

@@ -1,18 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-
 import api from '@/lib/api';
+
+interface SearchResult {
+  id: string;
+  title: string;
+  content: string;
+}
 
 export default function Search() {
   const [q, setQ] = useState('');
-
-  const [result, setResult] = useState([]);
+  const [result, setResult] = useState<SearchResult[]>([]);
 
   async function search() {
-    const res = await api.get(`/search?q=${q}`);
-
-    setResult(res.data);
+    try {
+      const res = await api.get<SearchResult[]>(`/search?q=${encodeURIComponent(q)}`);
+      setResult(res.data);
+    } catch (error) {
+      console.error('Search failed:', error);
+      setResult([]);
+    }
   }
 
   return (
@@ -20,7 +28,6 @@ export default function Search() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-bold text-gray-800">Knowledge Base Search</h1>
-
           <p className="mt-3 text-gray-500">Find HMIS articles and healthcare documentation</p>
         </div>
 
@@ -28,6 +35,7 @@ export default function Search() {
           <input
             className="flex-1 rounded-2xl border border-gray-300 p-4 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             placeholder="Search articles..."
+            value={q}
             onChange={(e) => setQ(e.target.value)}
           />
 

@@ -41,6 +41,20 @@ import {
   AlignRight,
 } from 'lucide-react';
 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 interface Category {
   id: string;
   name: string;
@@ -117,15 +131,16 @@ export default function EditArticlePage() {
   const [success, setSuccess] = useState('');
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
         },
+        link: false,
+        underline: false,
       }),
-
       UnderlineExtension,
-
       LinkExtension.configure({
         openOnClick: false,
       }),
@@ -205,10 +220,10 @@ export default function EditArticlePage() {
   }, [articleId]);
 
   useEffect(() => {
-    if (editor && article?.content) {
-      editor.commands.setContent(article.content);
-    }
-  }, [editor, article]);
+    return () => {
+      editor?.destroy();
+    };
+  }, [editor]);
 
   /* Permission logic */
 
@@ -232,11 +247,7 @@ export default function EditArticlePage() {
     return false;
   }, [article, currentUser]);
 
-  /*
-  |--------------------------------------------------------------------------
-  | Add tag
-  |--------------------------------------------------------------------------
-  */
+  /* Add tag */
 
   const addTag = () => {
     const cleanTag = tagInput.trim();
@@ -268,7 +279,6 @@ export default function EditArticlePage() {
   };
 
   /* Save article */
-
   const handleSave = async () => {
     if (!title.trim()) {
       setError('Article title is required.');
@@ -313,30 +323,20 @@ export default function EditArticlePage() {
     }
   };
 
-  /*
-  |--------------------------------------------------------------------------
-  | Loading
-  |--------------------------------------------------------------------------
-  */
-
+  /* Loading */
   if (loading) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="animate-spin text-blue-600" size={38} />
+          <Loader2 className="text-primary animate-spin" size={38} />
 
-          <p className="text-sm text-gray-500">Loading article...</p>
+          <p className="text-muted-foreground text-sm">Loading article...</p>
         </div>
       </div>
     );
   }
 
-  /*
-  |--------------------------------------------------------------------------
-  | Error
-  |--------------------------------------------------------------------------
-  */
-
+  /* Error */
   if (error && !article) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
@@ -360,12 +360,7 @@ export default function EditArticlePage() {
 
   if (!article) return null;
 
-  /*
-  |--------------------------------------------------------------------------
-  | Permission denied
-  |--------------------------------------------------------------------------
-  */
-
+  /* Permission denied */
   if (!canEdit) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
@@ -403,47 +398,70 @@ export default function EditArticlePage() {
     );
   }
 
+  /* status colors */
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case 'DRAFT':
+        return 'badge badge-draft';
+      case 'SUBMITTED':
+        return 'badge badge-submitted';
+      case 'IN_REVIEW':
+        return 'badge badge-in-review';
+      case 'APPROVED':
+        return 'badge badge-approved';
+      case 'PUBLISHED':
+        return 'badge badge-published';
+      case 'REJECTED':
+        return 'badge badge-rejected';
+      case 'ARCHIVED':
+        return 'badge badge-archived';
+      case 'DELETED':
+        return 'badge badge-deleted';
+      default:
+        return 'badge badge-draft';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-8 md:px-8">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
             <Link
               href={`/admin/articles/${article.id}`}
-              className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-blue-600"
+              className="text-muted-foreground hover:text-primary mb-4 inline-flex items-center gap-2 text-sm font-medium transition"
             >
               <ArrowLeft size={17} />
               Back to Article
             </Link>
 
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Edit Article</h1>
+            <h1 className="text-foreground text-lg font-bold tracking-tight">Edit Article</h1>
 
-            <p className="mt-2 text-gray-500">Update and improve your knowledge base content.</p>
+            <p className="text-muted-foreground mt-2">
+              Update and improve your knowledge base content.
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-blue-700">
-              {article.status}
+            <span className={getStatusBadgeClass(article.status)}>
+              <span className="badge-dot" />
+              {article.status.replaceAll('_', ' ')}
             </span>
 
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
+            <Button onClick={handleSave} disabled={saving} size="lg">
               {saving ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 className="size-4 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save size={18} />
-                  Save Changes
+                  <Save className="size-4" />
+                  Save changes
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -468,416 +486,434 @@ export default function EditArticlePage() {
           {/* Main Editor */}
           <main className="space-y-6">
             {/* Title */}
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-2xl p-6">
               <div className="mb-5 flex items-center gap-3">
-                <div className="rounded-xl bg-blue-100 p-3 text-blue-600">
+                <div className="bg-accent text-primary rounded-xl p-3">
                   <FileText size={21} />
                 </div>
 
                 <div>
-                  <h2 className="font-bold text-gray-900">Article Content</h2>
+                  <h2 className="text-foreground font-bold">Article Content</h2>
 
-                  <p className="text-sm text-gray-500">Create clear and useful documentation.</p>
+                  <p className="text-muted-foreground text-sm">
+                    Create clear and useful documentation.
+                  </p>
                 </div>
               </div>
 
-              <label className="mb-2 block text-sm font-semibold text-gray-700">
-                Article Title
-              </label>
-
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter article title..."
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-lg font-medium transition outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-              />
-
-              <div className="mt-5">
-                <label className="mb-2 block text-sm font-semibold text-gray-700">Content</label>
-
-                <div className="overflow-hidden rounded-xl border border-gray-300 bg-white">
-                  {/* Toolbar */}
-                  <div className="flex flex-wrap items-center gap-2 border-b bg-gradient-to-r from-slate-50 to-blue-50 p-3">
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().undo().run()}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <Undo2 size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().redo().run()}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <Redo2 size={18} />
-                    </button>
-
-                    <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleBold().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('bold') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Bold size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleItalic().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('italic') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Italic size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('underline')
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Underline size={18} />
-                    </button>
-
-                    <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('heading', { level: 1 })
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Heading1 size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('heading', { level: 2 })
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Heading2 size={18} />
-                    </button>
-
-                    <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('bulletList')
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <List size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('orderedList')
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <ListOrdered size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-                      className={`rounded-lg p-2 ${
-                        editor?.isActive('blockquote')
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                    >
-                      <Quote size={18} />
-                    </button>
-
-                    <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().setTextAlign('left').run()}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <AlignLeft size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().setTextAlign('center').run()}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <AlignCenter size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => editor?.chain().focus().setTextAlign('right').run()}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <AlignRight size={18} />
-                    </button>
-
-                    <div className="mx-1 h-6 w-px bg-gray-300" />
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!editor) return;
-
-                        const url = window.prompt('Enter URL');
-
-                        if (!url) return;
-
-                        if (editor.state.selection.empty) {
-                          editor
-                            .chain()
-                            .focus()
-                            .insertContent(`<a href="${url}" target="_blank">${url}</a>`)
-                            .run();
-                        } else {
-                          editor.chain().focus().setLink({ href: url }).run();
-                        }
-                      }}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <LinkIcon size={18} />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const url = window.prompt('Image URL');
-
-                        if (url) {
-                          editor?.chain().focus().setImage({ src: url }).run();
-                        }
-                      }}
-                      className="rounded-lg p-2 hover:bg-blue-100"
-                    >
-                      <ImagePlus size={18} />
-                    </button>
-                  </div>
-
-                  {/* TipTap Editor */}
-                  <EditorContent
-                    editor={editor}
-                    className="prose max-w-none p-6 [&_.ProseMirror]:min-h-[500px] [&_.ProseMirror]:cursor-text [&_.ProseMirror]:border-0 [&_.ProseMirror]:outline-none [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-blue-500 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h1]:my-4 [&_.ProseMirror_h1]:text-4xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h2]:my-3 [&_.ProseMirror_h2]:text-3xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_p]:leading-7 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6"
+              <CardContent className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Article title</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Enter article title..."
                   />
                 </div>
 
-                <div className="mt-2 flex justify-between text-xs text-gray-400">
-                  <span>Use clear headings, steps, and explanations.</span>
+                <div className="mt-5">
+                  <label className="text-foreground mb-2 block text-sm font-semibold">
+                    Content
+                  </label>
 
-                  <span>{editor?.getText().length.toLocaleString() || 0} characters</span>
+                  <div className="border-border bg-card overflow-hidden rounded-xl border">
+                    {/* Toolbar */}
+                    <div className="border-border bg-accent flex flex-wrap items-center gap-2 border-b p-3">
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().undo().run()}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <Undo2 size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().redo().run()}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <Redo2 size={18} />
+                      </button>
+
+                      <div className="mx-1 h-6 w-px bg-gray-300" />
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleBold().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('bold')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Bold size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleItalic().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('italic')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Italic size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('underline')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Underline size={18} />
+                      </button>
+
+                      <div className="mx-1 h-6 w-px bg-gray-300" />
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('heading', { level: 1 })
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Heading1 size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('heading', { level: 2 })
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Heading2 size={18} />
+                      </button>
+
+                      <div className="mx-1 h-6 w-px bg-gray-300" />
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('bulletList')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <List size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('orderedList')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <ListOrdered size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().toggleBlockquote().run()}
+                        className={`rounded-lg p-2 ${
+                          editor?.isActive('blockquote')
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent'
+                        }`}
+                      >
+                        <Quote size={18} />
+                      </button>
+
+                      <div className="mx-1 h-6 w-px bg-gray-300" />
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <AlignLeft size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <AlignCenter size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <AlignRight size={18} />
+                      </button>
+
+                      <div className="mx-1 h-6 w-px bg-gray-300" />
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!editor) return;
+
+                          const url = window.prompt('Enter URL');
+
+                          if (!url) return;
+
+                          if (editor.state.selection.empty) {
+                            editor
+                              .chain()
+                              .focus()
+                              .insertContent(`<a href="${url}" target="_blank">${url}</a>`)
+                              .run();
+                          } else {
+                            editor.chain().focus().setLink({ href: url }).run();
+                          }
+                        }}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <LinkIcon size={18} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const url = window.prompt('Image URL');
+
+                          if (url) {
+                            editor?.chain().focus().setImage({ src: url }).run();
+                          }
+                        }}
+                        className="hover:bg-accent rounded-lg p-2"
+                      >
+                        <ImagePlus size={18} />
+                      </button>
+                    </div>
+
+                    {/* TipTap Editor */}
+                    <EditorContent
+                      editor={editor}
+                      className="prose max-w-none p-6 [&_.ProseMirror]:min-h-[500px] [&_.ProseMirror]:cursor-text [&_.ProseMirror]:border-0 [&_.ProseMirror]:outline-none [&_.ProseMirror_blockquote]:border-l-4 [&_.ProseMirror_blockquote]:border-blue-500 [&_.ProseMirror_blockquote]:pl-4 [&_.ProseMirror_blockquote]:italic [&_.ProseMirror_h1]:my-4 [&_.ProseMirror_h1]:text-4xl [&_.ProseMirror_h1]:font-bold [&_.ProseMirror_h2]:my-3 [&_.ProseMirror_h2]:text-3xl [&_.ProseMirror_h2]:font-semibold [&_.ProseMirror_ol]:list-decimal [&_.ProseMirror_ol]:pl-6 [&_.ProseMirror_p]:leading-7 [&_.ProseMirror_ul]:list-disc [&_.ProseMirror_ul]:pl-6"
+                    />
+                  </div>
+
+                  <div className="text-muted-foreground mt-2 flex justify-between text-xs">
+                    <span>Use clear headings, steps, and explanations.</span>
+
+                    <span>{editor?.getText().length.toLocaleString() || 0} characters</span>
+                  </div>
                 </div>
-              </div>
-            </section>
+              </CardContent>
+            </Card>
 
             {/* Tags */}
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <Card className="rounded-2xl p-6">
               <div className="mb-5 flex items-center gap-3">
                 <div className="rounded-xl bg-purple-100 p-3 text-purple-600">
                   <Tag size={21} />
                 </div>
 
                 <div>
-                  <h2 className="font-bold text-gray-900">Article Tags</h2>
+                  <h2 className="text-foreground font-bold">Article Tags</h2>
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-muted-foreground text-sm">
                     Add keywords to improve article discovery.
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                  placeholder="Type a tag and press Enter..."
-                  className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                />
+              <div className="space-y-2">
+                <Label htmlFor="tags">Add tags</Label>
 
-                <button
-                  type="button"
-                  onClick={addTag}
-                  className="rounded-xl bg-gray-900 px-5 py-3 font-medium text-white transition hover:bg-gray-800"
-                >
-                  Add
-                </button>
+                <div className="flex gap-2">
+                  <Input
+                    id="tags"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder="Type a tag and press Enter"
+                  />
+
+                  <Button type="button" className="px-5" onClick={addTag}>
+                    Add
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {tags.length === 0 && <p className="text-sm text-gray-400">No tags added.</p>}
+                {tags.length === 0 && (
+                  <p className="text-muted-foreground text-sm">No tags added.</p>
+                )}
 
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-2 text-sm font-medium text-blue-700"
+                    className="bg-accent text-primary inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium"
                   >
                     #{tag}
                     <button
                       type="button"
                       onClick={() => removeTag(tag)}
-                      className="rounded-full transition hover:bg-blue-200"
+                      className="hover:bg-accent rounded-full transition"
                     >
                       <X size={15} />
                     </button>
                   </span>
                 ))}
               </div>
-            </section>
+            </Card>
           </main>
 
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Publishing Information */}
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-5 font-bold text-gray-900">Article Information</h2>
+            <Card className="rounded-2xl p-6">
+              <h2 className="text-foreground mb-5 font-bold">Article Information</h2>
 
               {/* Type */}
               <div className="mb-5">
-                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <FileText size={16} />
+                <Label className="mb-2 flex items-center gap-2" htmlFor="type">
+                  <FileText size={16} className="text-primary size-4" />
                   Article Type
-                </label>
+                </Label>
 
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                >
-                  {ARTICLE_TYPES.map((articleType) => (
-                    <option key={articleType} value={articleType}>
-                      {articleType.replaceAll('_', ' ')}
-                    </option>
-                  ))}
-                </select>
+                <Select value={type} onValueChange={(value) => setType(value ?? 'FAQ')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select article type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ARTICLE_TYPES.map((articleType) => (
+                      <SelectItem key={articleType} value={articleType}>
+                        {articleType.replaceAll('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Category */}
               <div className="mb-5">
-                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <FolderOpen size={16} />
+                <Label className="mb-2 flex items-center gap-2" htmlFor="category">
+                  <FolderOpen size={16} className="text-primary size-4" />
                   Category
-                </label>
+                </Label>
 
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                >
-                  <option value="">Select category</option>
-
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? '')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category">
+                      {categories.find((c) => c.id === categoryId)?.name}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Product */}
-              <div>
-                <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <Package size={16} />
+              <div className="space-y-2">
+                <Label className="mb-2 flex items-center gap-2" htmlFor="product">
+                  <Package className="text-primary size-4" />
                   Product
-                </label>
-
-                <input
-                  type="text"
+                </Label>
+                <Input
+                  id="product"
                   value={product}
                   onChange={(e) => setProduct(e.target.value)}
-                  placeholder="e.g. HMIS, HR System..."
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  placeholder="e.g. HMIS, HR System, Laboratory Module"
                 />
               </div>
-            </section>
+            </Card>
 
             {/* Article Details */}
-            <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-5 font-bold text-gray-900">Article Details</h2>
+            <Card className="rounded-2xl p-6">
+              <h2 className="text-foreground mb-5 font-bold">Article Details</h2>
 
-              <div className="space-y-4 text-sm">
-                <div>
-                  <p className="text-gray-500">Article ID</p>
-
-                  <p className="mt-1 font-medium break-all text-gray-800">{article.id}</p>
+              <div className="divide-border divide-y text-sm">
+                <div className="space-y-2 pb-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Article ID
+                  </p>
+                  <p className="text-foreground font-medium break-all">{article.id}</p>
                 </div>
 
-                <div>
-                  <p className="text-gray-500">Slug</p>
-
-                  <p className="mt-1 font-medium break-all text-gray-800">{article.slug}</p>
+                <div className="space-y-2 py-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Slug
+                  </p>
+                  <p className="text-foreground font-medium break-all">{article.slug}</p>
                 </div>
 
-                <div>
-                  <p className="text-gray-500">Created By</p>
-
-                  <p className="mt-1 font-medium text-gray-800">{article.author.name}</p>
-
-                  <p className="text-xs text-gray-500">{article.author.email}</p>
+                <div className="space-y-2 py-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Created by
+                  </p>
+                  <p className="text-foreground font-medium">{article.author.name}</p>
+                  <p className="text-muted-foreground text-xs">{article.author.email}</p>
                 </div>
 
-                <div>
-                  <p className="text-gray-500">Status</p>
-
-                  <span className="mt-2 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">
-                    {article.status}
+                <div className="space-y-2 pt-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Status
+                  </p>
+                  <span className={getStatusBadgeClass(article.status)}>
+                    <span className="badge-dot" />
+                    {article.status.replaceAll('_', ' ')}
                   </span>
                 </div>
               </div>
-            </section>
+            </Card>
 
             {/* Save Card */}
-            <section className="rounded-2xl bg-gray-900 p-6 text-white shadow-lg">
-              <h2 className="font-bold">Ready to save?</h2>
+            <Card className="border-primary/20 bg-primary text-primary-foreground rounded-2xl p-6">
+              <CardHeader>
+                <CardTitle className="text-primary-foreground">Ready to save?</CardTitle>
+                <CardDescription className="text-primary-foreground/80">
+                  Your changes will be saved and a new article version will be created
+                  automatically.
+                </CardDescription>
+              </CardHeader>
 
-              <p className="mt-2 text-sm leading-6 text-gray-300">
-                Your changes will be saved and a new article version will be created automatically.
-              </p>
-
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-semibold transition hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    Save Changes
-                  </>
-                )}
-              </button>
-            </section>
+              <CardContent>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  variant="secondary"
+                  className="w-full"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="size-4" />
+                      Save changes
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
           </aside>
         </div>
       </div>

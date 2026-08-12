@@ -1,8 +1,25 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
-import { ListFilter, Download, Edit, Trash2, X, Loader2 } from 'lucide-react';
+import {
+  Search,
+  RefreshCw,
+  Download,
+  Edit,
+  Trash2,
+  Users,
+  Shield,
+  UserCheck,
+  UserX,
+  X,
+  Loader2,
+} from 'lucide-react';
 
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -10,7 +27,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import Link from 'next/link';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
 
 interface User {
   id: string;
@@ -34,7 +58,7 @@ interface Pagination {
   hasNext: boolean;
   hasPrevious: boolean;
 }
-export default function Users() {
+export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -185,40 +209,40 @@ export default function Users() {
 
   const cards = [
     {
-      title: 'Total Users',
+      title: 'Total users',
       total: statistics.totalUsers,
-      color: 'text-blue-600',
-      bg: 'bg-blue-50',
+      icon: <Users className="h-5 w-5" />,
+      iconClass: 'bg-primary/10 text-primary',
     },
     {
-      title: 'Active Users',
+      title: 'Active users',
       total: statistics.activeUsers,
-      color: 'text-green-600',
-      bg: 'bg-green-50',
+      icon: <UserCheck className="h-5 w-5" />,
+      iconClass: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     },
     {
-      title: 'Inactive Users',
+      title: 'Inactive users',
       total: statistics.inactiveUsers,
-      color: 'text-red-600',
-      bg: 'bg-red-50',
+      icon: <UserX className="h-5 w-5" />,
+      iconClass: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     },
     {
       title: 'Administrators',
       total: statistics.adminUsers,
-      color: 'text-red-700',
-      bg: 'bg-red-50',
+      icon: <Shield className="h-5 w-5" />,
+      iconClass: 'bg-primary/10 text-primary',
     },
     {
       title: 'Editors',
       total: statistics.editorUsers,
-      color: 'text-amber-700',
-      bg: 'bg-amber-50',
+      icon: <Edit className="h-5 w-5" />,
+      iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     },
     {
       title: 'Viewers',
       total: statistics.viewerUsers,
-      color: 'text-emerald-700',
-      bg: 'bg-emerald-50',
+      icon: <Users className="h-5 w-5" />,
+      iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     },
   ];
   const roles = ['ADMIN', 'EDITOR', 'VIEWER'];
@@ -262,62 +286,99 @@ export default function Users() {
   ];
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">User Management</h1>
-          <p className="">Oversee system access and permissions for all HealthTech KB personnel.</p>
-        </div>
-        <Link href="/admin/users/create">
-          <button className="rounded-2xl bg-blue-500 px-5 py-2">Create User</button>
-        </Link>
-      </header>
-      {/* cards */}
-      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-6">
-        {cards.map((card) => (
-          <div
-            key={card.title}
-            className={`rounded-2xl border border-gray-200 ${card.bg} p-4 text-center shadow-sm`}
-          >
-            <p className="text-sm text-gray-500">{card.title}</p>
-
-            <h2 className={`mt-2 text-3xl font-bold ${card.color}`}>{card.total}</h2>
+      {/* header */}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
+            <Users className="text-primary h-5 w-5" />
           </div>
+
+          <div>
+            <h1 className="text-foreground text-xl font-bold">User management</h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Oversee system access, permissions, and user accounts across the knowledge base
+              platform.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={() => fetchUsers(pagination.page)}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+
+          <Link href="/admin/users/new">
+            <Button>Create user</Button>
+          </Link>
+        </div>
+      </div>
+      {/* cards */}
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        {cards.map((card) => (
+          <Card key={card.title}>
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl ${card.iconClass}`}
+                >
+                  {card.icon}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs font-medium">{card.title}</p>
+                <p className="text-foreground text-2xl font-bold tracking-tight">{card.total}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
-      {/* Search Section */}
-      <section className="mt-3 rounded-2xl border border-gray-300 p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search name or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-11 w-72 rounded-lg border px-4"
-            />
-            {/* roles */}
-            <div>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="h-11 w-40">
-                  <SelectValue placeholder="All Roles" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
-                  {roles.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {/* departments */}
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="h-11 w-40">
-                <SelectValue placeholder="Select Department" />
-              </SelectTrigger>
 
-              <SelectContent>
+      {/* Search Section */}
+      <Card className="mt-6">
+        <CardContent className="p-5">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+            {/* Search */}
+            <div className="relative min-w-[280px] flex-1">
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Input
+                placeholder="Search name or email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10"
+              />
+            </div>
+
+            {/* Role */}
+            <Select value={selectedRole} onValueChange={(value) => setSelectedRole(value ?? '')}>
+              <SelectTrigger className="w-full xl:w-[100px]">
+                <SelectValue placeholder="All roles" />
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectItem value="__all_roles" disabled>
+                  All roles
+                </SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Department */}
+            <Select
+              value={selectedDepartment}
+              onValueChange={(value) => setSelectedDepartment(value ?? '')}
+            >
+              <SelectTrigger className="w-full xl:w-[190px]">
+                <SelectValue placeholder="All departments" />
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectItem value="__all_departments" disabled>
+                  All departments
+                </SelectItem>
                 {departments.map((dep) => (
                   <SelectItem key={dep} value={dep}>
                     {dep}
@@ -325,207 +386,193 @@ export default function Users() {
                 ))}
               </SelectContent>
             </Select>
-            {/* */}
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="h-11 w-40">
-                <SelectValue placeholder="Status" />
+
+            {/* Status */}
+            <Select
+              value={selectedStatus}
+              onValueChange={(value) => setSelectedStatus(value ?? '')}
+            >
+              <SelectTrigger className="w-full xl:w-[115px]">
+                <SelectValue placeholder="All status" />
               </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
-
+              <SelectContent align="start">
+                <SelectItem value="__all_status" disabled>
+                  All status
+                </SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          {/* icons */}
-          <div className="flex items-center gap-3">
-            <button
+
+            {/* Clear filters */}
+            <Button
+              variant="outline"
+              className="w-full shrink-0 xl:w-[120px]"
               onClick={() => {
                 setSearch('');
                 setSelectedRole('');
                 setSelectedDepartment('');
                 setSelectedStatus('');
               }}
-              className="rounded-lg border px-4 py-2"
             >
-              Clear Filters
-            </button>
-            {/*<ListFilter size={18} />*/}
-            <Download size={18} />
+              Clear
+            </Button>
           </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
       {/* table section */}
-      <section className="mt-3 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div>
-          <table className="w-full table-fixed">
-            <thead className="bg-gray-200">
-              <tr>
-                <th className="border-b border-gray-200 px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                  USER
-                </th>
-                <th className="border-b border-gray-200 px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                  ROLE
-                </th>
-                <th className="border-b border-gray-200 px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                  DEPARTMENT
-                </th>
-                <th className="border-b border-gray-200 px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                  STATUS
-                </th>
-                <th className="border-b border-gray-200 px-6 py-4 text-center text-sm font-semibold text-gray-700">
-                  ACTION
-                </th>
-              </tr>
-            </thead>
+      <Card className="mt-6 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>User</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
 
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-10 text-center">
-                    Loading users...
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-10 text-center">
-                    No users found.
-                  </td>
-                </tr>
-              ) : (
-                users.map((u, index) => (
-                  <tr key={index} className="border-b border-gray-200 transition hover:bg-blue-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <p
-                          className={`flex h-10 w-10 items-center justify-center rounded-full p-2 font-semibold ${
-                            u.role === 'ADMIN'
-                              ? 'bg-gradient-to-br from-red-500 to-red-700'
-                              : u.role === 'EDITOR'
-                                ? 'bg-gradient-to-br from-amber-400 to-orange-500'
-                                : 'bg-gradient-to-br from-emerald-400 to-emerald-600'
-                          }`}
-                        >
-                          {u.name
-                            ?.split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .slice(0, 2)}
-                        </p>
-                        <div className="flex flex-col">
-                          <p className="">{u.name}</p>
-                          <span className="text-gray-500">{u.email}</span>
-                        </div>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-muted-foreground py-10 text-center">
+                  Loading users...
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-muted-foreground py-10 text-center">
+                  No users found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
+                        {u.name
+                          ?.split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`rounded-xl px-3 py-1 ${u.role === 'ADMIN' ? 'bg-red-100 text-red-700' : u.role === 'EDITOR' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}
+
+                      <div>
+                        <p className="font-medium">{u.name}</p>
+                        <p className="text-muted-foreground text-sm">{u.email}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <span
+                      className={
+                        u.role === 'ADMIN'
+                          ? 'badge badge-role-admin'
+                          : u.role === 'EDITOR'
+                            ? 'badge badge-role-editor'
+                            : 'badge badge-role-viewer'
+                      }
+                    >
+                      {u.role}
+                    </span>
+                  </TableCell>
+
+                  <TableCell>{u.department || '-'}</TableCell>
+
+                  <TableCell>
+                    <span className={u.isActive ? 'badge badge-published' : 'badge badge-rejected'}>
+                      {u.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
+
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="hover:bg-primary/10 hover:text-primary cursor-pointer"
+                        onClick={() => openEditModal(u.id)}
                       >
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="font-medium text-slate-700">{u.department || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <div
-                          className={`relative h-5 w-9 rounded-full transition ${u.isActive ? 'bg-blue-500' : 'bg-gray-300'}`}
-                        >
-                          <div
-                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${u.isActive ? 'right-0.5' : 'left-0.5'}`}
-                          />
-                        </div>
+                        <Edit className="h-4 w-4" />
+                      </Button>
 
-                        <span>{u.isActive ? 'Active' : 'Inactive'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-center gap-3">
-                        <button
-                          onClick={() => openEditModal(u.id)}
-                          className="rounded-lg p-2 transition hover:bg-blue-100"
-                        >
-                          <Edit size={18} className="text-blue-600" />
-                        </button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="cursor-pointer hover:bg-red-100 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
 
-                        <button>
-                          <Trash2 size={18} className="text-red-500" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="border-border flex items-center justify-between border-t px-6 py-4">
+          <p className="text-muted-foreground text-sm">
+            Showing {(pagination.page - 1) * pagination.limit + 1}-
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+            users
+          </p>
 
-          {/* pagination */}
-          <div className="flex items-center justify-between border-t px-6 py-4">
-            <div className="text-sm text-gray-500">
-              Showing{' '}
-              <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> -
-              <span className="font-medium">
-                {Math.min(pagination.page * pagination.limit, pagination.total)}
-              </span>{' '}
-              of <span className="font-medium">{pagination.total}</span> users
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={previousPage}
+              disabled={!pagination.hasPrevious}
+            >
+              Previous
+            </Button>
+
+            <div className="text-muted-foreground px-3 text-sm">
+              {pagination.page} / {pagination.totalPages}
             </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={previousPage}
-                disabled={!pagination.hasPrevious}
-                className="rounded-lg border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Previous
-              </button>
-
-              <span className="rounded-lg border px-4 py-2">
-                {pagination.page} / {pagination.totalPages}
-              </span>
-
-              <button
-                onClick={nextPage}
-                disabled={!pagination.hasNext}
-                className="rounded-lg border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+            <Button variant="outline" size="sm" onClick={nextPage} disabled={!pagination.hasNext}>
+              Next
+            </Button>
           </div>
         </div>
+
         {openEdit && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+            <Card className="w-[760px] max-w-[95vw] rounded-2xl shadow-2xl">
               {/* Header */}
 
               <div className="flex items-center justify-between border-b p-6">
                 <div>
-                  <h2 className="text-2xl font-bold">Edit User</h2>
-
-                  <p className="text-sm text-gray-500">Update user information</p>
+                  <h2 className="text-xl font-semibold">Edit user</h2>
+                  <p className="text-muted-foreground mt-1 text-sm">
+                    Update the user's account information and permissions.
+                  </p>
                 </div>
 
-                <button onClick={() => setOpenEdit(false)}>
-                  <X />
-                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="cursor-pointer hover:bg-red-100 hover:text-red-700"
+                  onClick={() => setOpenEdit(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
               </div>
 
               {/* Body */}
 
-              <div className="grid grid-cols-2 gap-5 p-6">
+              <div className="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
                 {/* Name */}
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Full Name</label>
-
-                  <input
-                    className="w-full rounded-lg border p-3"
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Full name</Label>
+                  <Input
+                    id="edit-name"
                     value={editForm.name}
                     onChange={(e) =>
                       setEditForm({
@@ -538,11 +585,11 @@ export default function Users() {
 
                 {/* Email */}
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Email</label>
-
-                  <input
-                    className="w-full rounded-lg border p-3"
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email address</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
                     value={editForm.email}
                     onChange={(e) =>
                       setEditForm({
@@ -554,33 +601,33 @@ export default function Users() {
                 </div>
 
                 {/* Role */}
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Role</label>
-
-                  <select
-                    className="w-full rounded-lg border p-3"
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <Select
                     value={editForm.role}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        role: e.target.value as any,
-                      })
+                    onValueChange={(value) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        role: (value ?? 'VIEWER') as 'ADMIN' | 'EDITOR' | 'VIEWER',
+                      }))
                     }
                   >
-                    <option value="ADMIN">ADMIN</option>
-                    <option value="EDITOR">EDITOR</option>
-                    <option value="VIEWER">VIEWER</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">Administrator</SelectItem>
+                      <SelectItem value="EDITOR">Editor</SelectItem>
+                      <SelectItem value="VIEWER">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Department */}
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Department</label>
-
-                  <input
-                    className="w-full rounded-lg border p-3"
+                <div className="space-y-2">
+                  <Label htmlFor="edit-department">Department</Label>
+                  <Input
+                    id="edit-department"
                     value={editForm.department}
                     onChange={(e) =>
                       setEditForm({
@@ -590,33 +637,36 @@ export default function Users() {
                     }
                   />
                 </div>
-                {/* Status */}
-                <div>
-                  <label className="mb-2 block text-sm font-medium">Status</label>
 
-                  <select
-                    className="w-full rounded-lg border p-3"
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <Select
                     value={editForm.isActive ? 'active' : 'inactive'}
-                    onChange={(e) =>
-                      setEditForm({
-                        ...editForm,
-                        isActive: e.target.value === 'active',
-                      })
+                    onValueChange={(value) =>
+                      setEditForm((prev) => ({
+                        ...prev,
+                        isActive: (value ?? 'inactive') === 'active',
+                      }))
                     }
                   >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 {/* Password */}
-
-                <div className="col-span-2">
-                  <label className="mb-2 block text-sm font-medium">New Password (Optional)</label>
-
-                  <input
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="edit-password">New password (optional)</Label>
+                  <Input
+                    id="edit-password"
                     type="password"
-                    className="w-full rounded-lg border p-3"
-                    placeholder="Leave blank to keep current password"
+                    placeholder="Leave blank to keep the current password"
                     value={editForm.password}
                     onChange={(e) =>
                       setEditForm({
@@ -629,25 +679,24 @@ export default function Users() {
               </div>
 
               {/* Footer */}
-
               <div className="flex justify-end gap-3 border-t p-6">
-                <button onClick={() => setOpenEdit(false)} className="rounded-lg border px-6 py-3">
-                  Cancel
-                </button>
-
-                <button
-                  disabled={saving}
-                  onClick={updateUser}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white"
+                <Button
+                  variant="outline"
+                  className="cursor-pointer"
+                  onClick={() => setOpenEdit(false)}
                 >
-                  {saving && <Loader2 className="animate-spin" size={18} />}
-                  Save Changes
-                </button>
+                  Cancel
+                </Button>
+
+                <Button className="cursor-pointer" disabled={saving} onClick={updateUser}>
+                  {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Save changes
+                </Button>
               </div>
-            </div>
+            </Card>
           </div>
         )}
-      </section>
+      </Card>
     </div>
   );
 }

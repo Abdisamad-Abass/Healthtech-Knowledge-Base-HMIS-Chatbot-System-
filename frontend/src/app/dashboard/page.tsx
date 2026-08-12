@@ -1,12 +1,9 @@
-import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
 
 export default function Dashboard() {
   return (
     <>
-      <Navbar />
-
       <div className="flex min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
         <Sidebar />
 

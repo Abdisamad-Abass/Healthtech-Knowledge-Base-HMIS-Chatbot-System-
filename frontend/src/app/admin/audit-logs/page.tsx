@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
+
 import {
   Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -10,8 +10,30 @@ import {
   Calendar,
   X,
   RefreshCw,
+  Shield,
+  Activity,
 } from 'lucide-react';
 import api from '@/lib/api';
+
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
 
 // ==================== TYPES ====================
 
@@ -98,19 +120,32 @@ const formatDate = (date: Date | string, format: string): string => {
 // ==================== ACTION CONFIGURATION ====================
 
 const actionColors: Record<string, string> = {
-  USER_CREATED: 'bg-green-100 text-green-700',
-  USER_UPDATED: 'bg-blue-100 text-blue-700',
-  USER_DELETED: 'bg-red-100 text-red-700',
-  USER_ACTIVATED: 'bg-emerald-100 text-emerald-700',
-  USER_DEACTIVATED: 'bg-gray-200 text-gray-700',
-  USER_ROLE_CHANGED: 'bg-yellow-100 text-yellow-700',
+  USER_CREATED: 'badge badge-published',
+  USER_UPDATED: 'badge badge-approved',
+  USER_DELETED: 'badge badge-rejected',
+  USER_ACTIVATED: 'badge badge-published',
+  USER_DEACTIVATED: 'badge badge-draft',
+  USER_ROLE_CHANGED: 'badge badge-in-review',
 
-  SEARCH_PERFORMED: 'bg-indigo-100 text-indigo-700',
-  SEARCH_NO_RESULTS: 'bg-orange-100 text-orange-700',
-  SEARCH_AUTOCOMPLETE: 'bg-purple-100 text-purple-700',
-  SEARCH_HISTORY_CLEARED: 'bg-red-100 text-red-700',
+  SEARCH_PERFORMED: 'badge badge-submitted',
+  SEARCH_NO_RESULTS: 'badge badge-rejected',
+  SEARCH_AUTOCOMPLETE: 'badge badge-approved',
+  SEARCH_HISTORY_CLEARED: 'badge badge-deleted',
 
-  CHATBOT: 'bg-cyan-100 text-cyan-700',
+  CHATBOT: 'badge badge-approved',
+};
+
+const roleBadge = (role?: string) => {
+  switch (role) {
+    case 'ADMIN':
+      return 'badge badge-role-admin';
+    case 'EDITOR':
+      return 'badge badge-role-editor';
+    case 'VIEWER':
+      return 'badge badge-role-viewer';
+    default:
+      return 'badge badge-role-system';
+  }
 };
 
 const actionLabels: Record<string, string> = {
@@ -279,8 +314,8 @@ export default function AuditLogs() {
       formatDate(new Date(log.createdAt), 'dd MMM yyyy HH:mm'),
       log.action,
       log.entity,
-      log.user.name,
-      log.user.role,
+      log.user?.name ?? 'System / Unknown User',
+      log.user?.role ?? '-',
       JSON.stringify(log.details).substring(0, 100) + '...',
     ]);
 
@@ -296,13 +331,11 @@ export default function AuditLogs() {
 
   // ==================== RENDER FUNCTIONS ====================
 
-  const renderActionBadge = (action: string) => {
-    const colorClass = actionColors[action] || 'bg-gray-100 text-gray-700';
-    const label = actionLabels[action] || action;
-    return (
-      <span className={`rounded-full px-2 py-1 text-xs font-medium ${colorClass}`}>{label}</span>
-    );
-  };
+  const renderActionBadge = (action: string) => (
+    <span className={actionColors[action] || 'badge badge-draft'}>
+      {actionLabels[action] || action}
+    </span>
+  );
 
   const renderStatistics = () => {
     const stats = [
@@ -316,13 +349,22 @@ export default function AuditLogs() {
     ];
 
     return (
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-7">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-            <p className="text-sm text-gray-600">{stat.label}</p>
-            <p className="mt-1 text-2xl font-semibold">{stat.value}</p>
-            <div className={`h-1 w-full ${stat.color} mt-2 rounded`} />
-          </div>
+          <Card key={stat.label}>
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-xl">
+                  <Activity className="h-5 w-5" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-muted-foreground text-xs font-medium">{stat.label}</p>
+                <p className="text-foreground text-2xl font-bold">{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
@@ -330,102 +372,95 @@ export default function AuditLogs() {
 
   const renderFilters = () => {
     return (
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow">
+      <Card className="mt-6 p-5">
         <div className="flex flex-wrap items-center gap-4">
           {/* Search */}
           <div className="min-w-[200px] flex-1">
             <div className="relative">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <input
-                type="text"
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+              <Input
                 placeholder="Search by action, entity, or user..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full rounded-lg border border-gray-300 py-2 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                className="pl-10"
               />
             </div>
           </div>
 
           {/* Action Filter */}
           <div className="min-w-[150px]">
-            <select
-              value={selectedAction}
-              onChange={(e) => setSelectedAction(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            <Select
+              value={selectedAction || null}
+              onValueChange={(value) => setSelectedAction(value ?? '')}
             >
-              {actionOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full xl:w-[170px]">
+                <SelectValue placeholder="All actions" />
+              </SelectTrigger>
+              <SelectContent align="start">
+                {actionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value || '__all_actions'}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Entity Filter */}
           <div className="min-w-[150px]">
-            <select
-              value={selectedEntity}
-              onChange={(e) => setSelectedEntity(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+            <Select
+              value={selectedEntity || null}
+              onValueChange={(value) => setSelectedEntity(value ?? '')}
             >
-              {entityOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full xl:w-[170px]">
+                <SelectValue placeholder="All entities" />
+              </SelectTrigger>
+              <SelectContent align="start">
+                {entityOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value || '__all_entities'}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Date Range */}
           <div className="flex items-center gap-2">
             <div className="relative">
               <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <input
+              <Input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="rounded-lg border border-gray-300 py-2 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                className="pr-4 pl-10"
               />
             </div>
-            <span className="text-gray-500">to</span>
+            <span className="text-muted-foreground">to</span>
             <div className="relative">
               <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-              <input
+              <Input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="rounded-lg border border-gray-300 py-2 pr-4 pl-10 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                className="pr-4 pl-10"
               />
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <button
-              onClick={handleSearch}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
-            >
+            <Button onClick={handleSearch} className="flex items-center gap-2 px-4 py-2">
               <Search className="h-4 w-4" />
               Search
-            </button>
-            <button
-              onClick={handleResetFilters}
-              className="flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-300"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Reset
-            </button>
-            <button
-              onClick={handleExportCSV}
-              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white transition-colors hover:bg-green-700"
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
-            </button>
+            </Button>
+
+            <Button variant="outline" onClick={handleResetFilters}>
+              Clear
+            </Button>
           </div>
         </div>
-      </div>
+      </Card>
     );
   };
 
@@ -448,93 +483,85 @@ export default function AuditLogs() {
     }
 
     return (
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Action
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Entity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Performed By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
-                  Details
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {logs.map((log) => (
-                <tr key={log.id} className="transition-colors hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-                    {formatDate(new Date(log.createdAt), 'dd MMM yyyy HH:mm')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{renderActionBadge(log.action)}</td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-                    {log.entity}
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-900">
-                    {log.user?.name ?? 'Unknown User'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
-                      {log.user?.role ?? '-'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap">
-                    <button
-                      onClick={() => handleViewDetails(log)}
-                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                    >
-                      <Eye className="h-4 w-4" />
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <Card className="mt-6 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date</TableHead>
+              <TableHead>Action</TableHead>
+              <TableHead>Entity</TableHead>
+              <TableHead>Performed by</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead className="text-right">Details</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {logs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell>{formatDate(new Date(log.createdAt), 'dd MMM yyyy HH:mm')}</TableCell>
+
+                <TableCell>{renderActionBadge(log.action)}</TableCell>
+
+                <TableCell>{log.entity}</TableCell>
+
+                <TableCell>{log.user?.name ?? 'Unknown User'}</TableCell>
+
+                <TableCell>
+                  <span className={roleBadge(log.user?.role)}>{log.user?.role ?? '-'}</span>
+                </TableCell>
+
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="hover:bg-primary/10 hover:text-primary"
+                    onClick={() => handleViewDetails(log)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
     );
   };
 
   const renderPagination = () => {
     return (
-      <div className="mt-6 flex items-center justify-between">
-        <div className="text-sm text-gray-700">
-          Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-          {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}{' '}
-          entries
-        </div>
+      <div className="border-border flex items-center justify-between border-t px-6 py-4">
+        <p className="text-muted-foreground text-sm">
+          Showing {(pagination.page - 1) * pagination.limit + 1}-
+          {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+          logs
+        </p>
+
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={!pagination.page || pagination.page <= 1}
-            className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={pagination.page <= 1}
           >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <span className="px-3 py-1">
-            Page {pagination.page} / {pagination.totalPages}
-          </span>
-          <button
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Previous
+          </Button>
+
+          <div className="text-muted-foreground px-3 text-sm">
+            {pagination.page} / {pagination.totalPages}
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={!pagination.page || pagination.page >= pagination.totalPages}
-            className="rounded border border-gray-300 px-3 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={pagination.page >= pagination.totalPages}
           >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+            Next
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       </div>
     );
@@ -558,8 +585,8 @@ export default function AuditLogs() {
         return (
           <div className="space-y-4">
             {/* Exact search term */}
-            <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-5">
-              <h4 className="mb-3 font-medium text-indigo-800">
+            <div className="border-info-border bg-info-bg rounded-xl border p-5">
+              <h4 className="text-info mb-3 font-medium">
                 {action === 'SEARCH_AUTOCOMPLETE' ? 'Autocomplete Query' : 'Exact Search Query'}
               </h4>
 
@@ -641,8 +668,8 @@ export default function AuditLogs() {
       if (action === 'USER_CREATED') {
         return (
           <div className="space-y-4">
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-              <h4 className="mb-3 font-medium text-green-800">Created User</h4>
+            <div className="border-success-border bg-success-bg rounded-lg border p-4">
+              <h4 className="text-success mb-3 font-medium">Created User</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-gray-500">Name</p>
@@ -669,8 +696,8 @@ export default function AuditLogs() {
       if (action === 'USER_DELETED') {
         return (
           <div className="space-y-4">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <h4 className="mb-3 font-medium text-red-800">Deleted User</h4>
+            <div className="border-danger-border bg-danger-bg rounded-lg border p-4">
+              <h4 className="text-danger mb-3 font-medium">Deleted User</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-gray-500">Name</p>
@@ -720,8 +747,8 @@ export default function AuditLogs() {
       if (action === 'USER_ROLE_CHANGED') {
         return (
           <div className="space-y-4">
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-              <h4 className="mb-3 font-medium text-yellow-800">Role Change</h4>
+            <div className="border-warning-border bg-warning-bg rounded-lg border p-4">
+              <h4 className="text-warning mb-3 font-medium">Role Change</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-gray-500">Old Role</p>
@@ -742,14 +769,14 @@ export default function AuditLogs() {
         return (
           <div className="space-y-4">
             <div
-              className={`${isActive ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-gray-50'} rounded-lg border p-4`}
+              className={`${isActive ? 'border-success-border bg-success-bg' : 'border-border bg-muted'} rounded-lg border p-4`}
             >
-              <h4 className={`font-medium ${isActive ? 'text-emerald-800' : 'text-gray-800'} mb-3`}>
+              <h4 className={`font-medium ${isActive ? 'text-success' : ''} mb-3`}>
                 Status Change
               </h4>
               <div>
                 <p className="text-xs text-gray-500">Status</p>
-                <p className={`font-medium ${isActive ? 'text-emerald-700' : 'text-gray-700'}`}>
+                <p className={`font-medium ${isActive ? 'text-success' : 'text-muted-foreground'}`}>
                   {isActive ? 'Active' : 'Inactive'}
                 </p>
               </div>
@@ -791,10 +818,10 @@ export default function AuditLogs() {
           <div className="rounded-lg border border-red-200 bg-red-50 p-5">
             <h4 className="mb-3 font-medium text-red-800">Search History Cleared</h4>
 
-            <p className="text-gray-700">The user cleared their search history.</p>
+            <p className="text-foreground">The user cleared their search history.</p>
 
             <div className="mt-4">
-              <p className="text-xs text-gray-500">Search Records Deleted</p>
+              <p className="text-muted-foreground text-xs">Search Records Deleted</p>
 
               <p className="text-2xl font-bold text-red-700">{details?.totalDeleted ?? 0}</p>
             </div>
@@ -806,53 +833,53 @@ export default function AuditLogs() {
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 font-medium text-gray-700">Before</h4>
+              <div className="border-border bg-muted/50 rounded-lg border p-4">
+                <h4 className="text-foreground mb-3 font-medium">Before</h4>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="text-muted-foreground text-xs">Name</p>
                     <p className="font-medium">{details.before.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-muted-foreground text-xs">Email</p>
                     <p className="font-medium">{details.before.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Role</p>
+                    <p className="text-muted-foreground text-xs">Role</p>
                     <p className="font-medium">{details.before.role || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Department</p>
+                    <p className="text-muted-foreground text-xs">Department</p>
                     <p className="font-medium">{details.before.department || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Status</p>
+                    <p className="text-muted-foreground text-xs">Status</p>
                     <p className="font-medium">{details.before.isActive ? 'Active' : 'Inactive'}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                <h4 className="mb-3 font-medium text-blue-700">After</h4>
+              <div className="border-border rounded-lg border bg-blue-50 p-4">
+                <h4 className="text-primary mb-3 font-medium">After</h4>
                 <div className="space-y-2">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="text-muted-foreground text-xs">Name</p>
                     <p className="font-medium">{details.after.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-muted-foreground text-xs">Email</p>
                     <p className="font-medium">{details.after.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Role</p>
+                    <p className="text-muted-foreground text-xs">Role</p>
                     <p className="font-medium">{details.after.role || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Department</p>
+                    <p className="text-muted-foreground text-xs">Department</p>
                     <p className="font-medium">{details.after.department || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Status</p>
+                    <p className="text-muted-foreground text-xs">Status</p>
                     <p className="font-medium">{details.after.isActive ? 'Active' : 'Inactive'}</p>
                   </div>
                 </div>
@@ -860,23 +887,23 @@ export default function AuditLogs() {
             </div>
 
             {details.updatedBy && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 font-medium text-gray-700">Updated By</h4>
+              <div className="border-border bg-muted/50 rounded-lg border p-4">
+                <h4 className="text-foreground mb-3 font-medium">Updated By</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="text-muted-foreground text-xs">Name</p>
                     <p className="font-medium">{details.updatedBy.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-muted-foreground text-xs">Email</p>
                     <p className="font-medium">{details.updatedBy.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Role</p>
+                    <p className="text-muted-foreground text-xs">Role</p>
                     <p className="font-medium">{details.updatedBy.role || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Department</p>
+                    <p className="text-muted-foreground text-xs">Department</p>
                     <p className="font-medium">{details.updatedBy.department || 'N/A'}</p>
                   </div>
                 </div>
@@ -888,8 +915,8 @@ export default function AuditLogs() {
 
       // Fallback for any other action
       return (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <h4 className="mb-3 font-medium text-gray-700">Details</h4>
+        <div className="border-border bg-muted/40 rounded-lg border p-4">
+          <h4 className="text-foreground mb-3 font-medium">Details</h4>
           <pre className="text-sm break-words whitespace-pre-wrap">
             {JSON.stringify(details, null, 2)}
           </pre>
@@ -898,57 +925,73 @@ export default function AuditLogs() {
     };
 
     return (
-      <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
-        <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg bg-white">
+      <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <Card className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg">
           {/* Header */}
-          <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-            <h2 className="text-xl font-semibold">Audit Log Details</h2>
-            <button
+          <div className="border-border bg-card sticky top-0 z-10 flex items-center justify-between border-b px-6 py-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-xl">
+                <Shield className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-foreground text-lg font-semibold">Audit log details</h2>
+                <p className="text-muted-foreground text-sm">Activity record and event metadata</p>
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => {
                 setIsModalOpen(false);
                 setSelectedLog(null);
               }}
-              className="rounded p-1 transition-colors hover:bg-gray-100"
             >
-              <X className="h-5 w-5" />
-            </button>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Content */}
-          <div className="space-y-6 p-6">
+          <div className="space-y-6 overflow-y-auto p-6">
             {/* Basic Info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <p className="text-xs text-gray-500">Action</p>
-                <p className="font-medium">{selectedLog.action}</p>
+                <p className="text-muted-foreground text-xs">Action</p>
+                <p className="text-foreground font-medium">{selectedLog.action}</p>
               </div>
+
               <div>
-                <p className="text-xs text-gray-500">Entity</p>
-                <p className="font-medium">{selectedLog.entity}</p>
+                <p className="text-muted-foreground text-xs">Entity</p>
+                <p className="text-foreground font-medium">{selectedLog.entity}</p>
               </div>
+
               <div>
-                <p className="text-xs text-gray-500">Performed By</p>
-                <p className="font-medium">{selectedLog.user?.name ?? 'System / Unknown User'}</p>
+                <p className="text-muted-foreground text-xs">Performed by</p>
+                <p className="text-foreground font-medium">
+                  {selectedLog.user?.name ?? 'System / Unknown User'}
+                </p>
               </div>
+
               <div>
-                <p className="text-xs text-gray-500">Email</p>
-                <p className="font-medium">{selectedLog.user?.email ?? 'N/A'}</p>
+                <p className="text-muted-foreground text-xs">Email</p>
+                <p className="text-foreground font-medium">{selectedLog.user?.email ?? 'N/A'}</p>
               </div>
-              <div className="col-span-2">
-                <p className="text-xs text-gray-500">Time</p>
-                <p className="font-medium">
+
+              <div className="md:col-span-2">
+                <p className="text-muted-foreground text-xs">Time</p>
+                <p className="text-foreground font-medium">
                   {formatDate(new Date(selectedLog.createdAt), 'dd MMM yyyy HH:mm')}
                 </p>
               </div>
             </div>
 
             {/* Divider */}
-            <hr className="border-gray-200" />
+            <div className="border-border border-t" />
 
             {/* Details */}
             {renderDetails()}
           </div>
-        </div>
+        </Card>
       </div>
     );
   };
@@ -956,12 +999,35 @@ export default function AuditLogs() {
   // ==================== MAIN RENDER ====================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-          <p className="text-gray-600">Track all user activities and system changes</p>
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
+              <Shield className="text-primary h-5 w-5" />
+            </div>
+
+            <div>
+              <h1 className="text-foreground text-lg font-bold">Audit logs</h1>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Track user activities, security events, and system changes across the knowledge
+                base.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => fetchLogs(pagination.page)}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+
+            <Button onClick={handleExportCSV}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
         </div>
 
         {/* Statistics */}

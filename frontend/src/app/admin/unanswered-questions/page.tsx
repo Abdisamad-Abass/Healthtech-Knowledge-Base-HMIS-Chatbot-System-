@@ -16,6 +16,17 @@ import {
   X,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface UnansweredQuestion {
   id: string;
@@ -39,7 +50,7 @@ export default function UnansweredQuestionsPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<StatusFilter>('UNRESOLVED');
+  const [status, setStatus] = useState<StatusFilter>('ALL');
   const [dateFilter, setDateFilter] = useState<DateFilter>('ALL');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
   const [confidenceFilter, setConfidenceFilter] = useState<ConfidenceFilter>('ALL');
@@ -159,7 +170,7 @@ export default function UnansweredQuestionsPage() {
 
   const hasActiveFilters =
     search ||
-    status !== 'UNRESOLVED' ||
+    status !== 'ALL' ||
     dateFilter !== 'ALL' ||
     typeFilter !== 'ALL' ||
     confidenceFilter !== 'ALL' ||
@@ -167,7 +178,7 @@ export default function UnansweredQuestionsPage() {
 
   const clearFilters = () => {
     setSearch('');
-    setStatus('UNRESOLVED');
+    setStatus('ALL');
     setDateFilter('ALL');
     setTypeFilter('ALL');
     setConfidenceFilter('ALL');
@@ -223,33 +234,33 @@ export default function UnansweredQuestionsPage() {
 
   return (
     <main className="min-h-screen">
-      {/* This wrapper controls the page width */}{' '}
+      {/* This wrapper controls the page width */}
       <div className="mx-auto w-full max-w-5xl">
-        {/* HEADER */}{' '}
-        <div className="flex flex-col gap-5">
-          {' '}
-          <div className="flex items-center gap-3">
-            {' '}
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100">
-              {' '}
-              <AlertCircle className="h-5 w-5 text-red-600" />{' '}
+        {/* Header */}
+        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-primary/10 flex h-11 w-11 items-center justify-center rounded-xl">
+              <AlertCircle className="text-primary h-5 w-5" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-[#0F52BA]">Unanswered Questions</h1>
 
-              <p className="mt-1 text-sm text-gray-500">
-                Review questions that need knowledge base improvement.
+            <div>
+              <h1 className="text-foreground text-xl font-bold">Unanswered questions</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
+                Review unanswered queries and identify knowledge base gaps that require new
+                articles.
               </p>
             </div>
           </div>
-          <button
+
+          <Button
+            variant="outline"
             onClick={() => fetchQuestions(true)}
             disabled={refreshing}
-            className="flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
+            className="h-11 rounded-xl"
           >
-            <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh
-          </button>
+          </Button>
         </div>
         {/* STAT CARDS */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -257,87 +268,83 @@ export default function UnansweredQuestionsPage() {
             label="Unresolved"
             value={unresolvedCount}
             icon={<AlertCircle size={18} />}
-            iconClass="bg-red-100 text-red-600"
+            iconClass="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
           />
 
           <StatCard
             label="Resolved"
             value={resolvedCount}
             icon={<CheckCircle2 size={18} />}
-            iconClass="bg-green-100 text-green-600"
+            iconClass="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
           />
 
           <StatCard
-            label="Repeated Questions"
+            label="Repeated questions"
             value={repeatedCount}
             icon={<Sparkles size={18} />}
-            iconClass="bg-purple-100 text-purple-600"
+            iconClass="bg-primary/10 text-primary"
           />
 
           <StatCard
-            label="Showing Results"
+            label="Showing results"
             value={filteredQuestions.length}
             icon={<MessageSquare size={18} />}
-            iconClass="bg-blue-100 text-blue-600"
+            iconClass="bg-primary/10 text-primary"
           />
         </div>
         {/* SEARCH + FILTER BAR */}
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <Card className="mt-6 p-5">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
-              <Search
-                size={18}
-                className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
-              />
-
-              <input
-                type="text"
+              <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+              <Input
                 placeholder="Search unanswered questions..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 pr-4 pl-10 text-sm transition outline-none focus:border-[#0F52BA] focus:bg-white"
+                className="h-11 rounded-xl pl-10"
               />
             </div>
 
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as StatusFilter)}
-              className="h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-[#0F52BA]"
-            >
-              <option value="UNRESOLVED">Unresolved</option>
-              <option value="ALL">All Status</option>
-              <option value="RESOLVED">Resolved</option>
-            </select>
+            <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
+              <SelectTrigger className="h-11 w-[220px] rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
 
-            <button
-              onClick={() => setShowFilters((value) => !value)}
-              className={`flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium transition ${
-                showFilters
-                  ? 'border-[#0F52BA] bg-blue-50 text-[#0F52BA]'
-                  : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
-              }`}
+              <SelectContent align="start" sideOffset={6} className="w-[220px]">
+                <SelectItem value="All Status" disabled>
+                  All status
+                </SelectItem>
+                <SelectItem value="UNRESOLVED">Unresolved</SelectItem>
+                <SelectItem value="RESOLVED">Resolved</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters((v) => !v)}
+              className="h-11 rounded-xl"
             >
-              <SlidersHorizontal size={16} />
+              <SlidersHorizontal className="mr-2 h-4 w-4" />
               Filters
               <ChevronDown
-                size={15}
-                className={`transition-transform ${showFilters ? 'rotate-180' : ''}`}
+                className={`ml-2 h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
               />
-            </button>
+            </Button>
 
             {hasActiveFilters && (
-              <button
+              <Button
+                variant="ghost"
                 onClick={clearFilters}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                className="h-11 rounded-xl text-red-600"
               >
-                <X size={15} />
+                <X className="mr-2 h-4 w-4" />
                 Clear
-              </button>
+              </Button>
             )}
           </div>
 
           {showFilters && (
-            <div className="mt-4 grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="border-border mt-5 grid grid-cols-1 gap-4 border-t pt-5 md:grid-cols-2 xl:grid-cols-4">
               <FilterSelect
                 label="Time Period"
                 icon={<Clock3 size={15} />}
@@ -388,7 +395,8 @@ export default function UnansweredQuestionsPage() {
               />
             </div>
           )}
-        </div>
+        </Card>
+
         {/* CONTENT */}
         <div className="mt-6">
           {loading ? (
@@ -405,20 +413,17 @@ export default function UnansweredQuestionsPage() {
               description="Try adjusting your search or filters to find other unanswered questions."
               icon={<Search className="h-12 w-12 text-gray-400" />}
               action={
-                <button
-                  onClick={clearFilters}
-                  className="mt-5 rounded-xl bg-[#0F52BA] px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                >
-                  Clear Filters
-                </button>
+                <Button onClick={clearFilters} className="rounded-xl">
+                  Clear filters
+                </Button>
               }
             />
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">
-                  Showing{' '}
-                  <span className="font-semibold text-gray-800">{filteredQuestions.length}</span>{' '}
+                  Showing
+                  <span className="font-semibold text-gray-800">{filteredQuestions.length}</span>
                   question
                   {filteredQuestions.length !== 1 ? 's' : ''}
                 </p>
@@ -434,55 +439,48 @@ export default function UnansweredQuestionsPage() {
                 const similarity = getSimilarityStatus(question.similarity);
 
                 return (
-                  <div
-                    key={question.id}
-                    className="group rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md"
-                  >
+                  <Card key={question.id} className="p-5">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                       <div className="flex min-w-0 gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50">
-                          <AlertCircle className="h-5 w-5 text-red-600" />
+                        <div className="bg-primary/10 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+                          <AlertCircle className="text-primary h-5 w-5" />
                         </div>
 
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-start gap-2">
-                            <h2 className="text-base leading-6 font-semibold break-words text-gray-800">
+                            <h2 className="text-foreground text-base leading-6 font-semibold">
                               {question.question}
                             </h2>
 
                             {count > 1 && (
-                              <span className="rounded-full bg-purple-100 px-2.5 py-1 text-xs font-semibold text-purple-700">
+                              <span className="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold">
                                 Asked {count} times
                               </span>
                             )}
                           </div>
 
                           <div className="mt-3 flex flex-wrap gap-2">
-                            <Badge
+                            <span
                               className={
-                                question.resolved
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-red-100 text-red-700'
+                                question.resolved ? 'badge badge-published' : 'badge badge-rejected'
                               }
                             >
                               {question.resolved ? 'Resolved' : 'Unresolved'}
-                            </Badge>
+                            </span>
 
-                            <Badge className={similarity.className}>{similarity.label}</Badge>
+                            <span className="badge badge-approved">{similarity.label}</span>
 
-                            {question.sessionId ? (
-                              <Badge className="bg-blue-100 text-blue-700">From chat session</Badge>
-                            ) : (
-                              <Badge className="bg-gray-100 text-gray-600">No session</Badge>
-                            )}
+                            <span className="badge badge-draft">
+                              {question.sessionId ? 'From chat session' : 'No session'}
+                            </span>
                           </div>
 
-                          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-gray-500">
+                          <div className="text-muted-foreground mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
                             <span>Asked {formatDate(question.askedAt)}</span>
 
                             {question.reason && (
                               <span>
-                                <span className="font-medium text-gray-700">Reason:</span>{' '}
+                                <span className="text-foreground font-medium">Reason:</span>
                                 {question.reason}
                               </span>
                             )}
@@ -490,15 +488,14 @@ export default function UnansweredQuestionsPage() {
                         </div>
                       </div>
 
-                      <Link
-                        href={`/admin/unanswered-questions/${question.id}`}
-                        className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-50 px-4 py-2.5 text-sm font-semibold text-[#0F52BA] transition hover:bg-blue-100"
-                      >
-                        <MessageSquare size={16} />
-                        Review
+                      <Link href={`/admin/unanswered-questions/${question.id}`}>
+                        <Button className="rounded-xl">
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Review
+                        </Button>
                       </Link>
                     </div>
-                  </div>
+                  </Card>
                 );
               })}
             </div>
@@ -521,20 +518,20 @@ function StatCard({
   iconClass: string;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-      {' '}
-      <div className="flex items-center justify-between">
-        {' '}
-        <div>
-          {' '}
-          <p className="text-sm text-gray-500">{label}</p>{' '}
-          <p className="mt-2 text-2xl font-bold text-gray-800">{value} </p>{' '}
+    <Card className="p-0">
+      <CardContent className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}>
+            {icon}
+          </div>
         </div>
-        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconClass}`}>
-          {icon}
+
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-xs font-medium">{label}</p>
+          <p className="text-foreground text-2xl font-bold tracking-tight">{value}</p>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -554,27 +551,33 @@ function FilterSelect({
   label: string;
   icon: React.ReactNode;
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: string | null) => void;
   options: [string, string][];
 }) {
   return (
-    <div>
-      {' '}
-      <label className="mb-2 flex items-center gap-2 text-xs font-semibold text-gray-600">
-        {icon}
-        {label}{' '}
-      </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm outline-none focus:border-[#0F52BA]"
-      >
-        {options.map(([optionValue, optionLabel]) => (
-          <option key={optionValue} value={optionValue}>
-            {optionLabel}
-          </option>
-        ))}
-      </select>
+    <div className="space-y-2">
+      <Label>{label}</Label>
+
+      <Select value={value} onValueChange={(value) => onChange(value)}>
+        <SelectTrigger className="h-11 w-full rounded-xl">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{icon}</span>
+            <SelectValue />
+          </div>
+        </SelectTrigger>
+
+        <SelectContent
+          align="start"
+          sideOffset={6}
+          className="w-[var(--radix-select-trigger-width)] min-w-[220px]"
+        >
+          {options.map(([optionValue, optionLabel]) => (
+            <SelectItem key={optionValue} value={optionValue} disabled={optionValue === 'ALL'}>
+              {optionLabel}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -584,9 +587,7 @@ function LoadingState() {
     <div className="space-y-4">
       {[1, 2, 3].map((item) => (
         <div key={item} className="animate-pulse rounded-2xl border border-gray-200 bg-white p-5">
-          {' '}
           <div className="flex gap-4">
-            {' '}
             <div className="h-11 w-11 rounded-xl bg-gray-200" />
             <div className="flex-1">
               <div className="h-5 w-3/4 rounded bg-gray-200" />
@@ -617,12 +618,19 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
-      {' '}
-      <div className="flex justify-center">{icon}</div>
-      <h2 className="mt-4 text-lg font-semibold text-gray-800">{title}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">{description}</p>
-      {action}
-    </div>
+    <Card className="py-14">
+      <CardContent className="text-center">
+        <div className="bg-primary/10 mx-auto flex h-16 w-16 items-center justify-center rounded-2xl">
+          {icon}
+        </div>
+
+        <h2 className="text-foreground mt-5 text-lg font-semibold">{title}</h2>
+        <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-6">
+          {description}
+        </p>
+
+        {action && <div className="mt-6">{action}</div>}
+      </CardContent>
+    </Card>
   );
 }

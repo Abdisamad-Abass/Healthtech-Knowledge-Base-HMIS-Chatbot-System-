@@ -24,15 +24,33 @@ import {
   RefreshCw,
   BookOpen,
   Bot,
+  ThumbsUp,
+  ThumbsDown,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { TbHistory } from 'react-icons/tb';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+type Citation = {
+  articleId: string;
+  title: string;
+  slug: string;
+  type: string;
+};
 
 type Message = {
-  id: number;
+  id: string;
   role: 'user' | 'bot';
   text: string;
   time: string;
+  messageId?: number;
+  citations?: Citation[];
+  confidence?: 'HIGH' | 'MEDIUM' | 'LOW';
+  responseTime?: number;
+  feedback?: boolean | null;
 };
 type User = {
   id: string;
@@ -78,7 +96,7 @@ export default function ChatBox() {
     setMessages((prev) => [
       ...prev,
       {
-        id: Date.now(),
+        id: crypto.randomUUID(),
         role: 'user',
         text: userMessage,
         time: new Date().toLocaleTimeString([], {
@@ -106,13 +124,18 @@ export default function ChatBox() {
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
+          id: crypto.randomUUID(),
           role: 'bot',
           text: res.data.answer,
           time: new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           }),
+          messageId: res.data.messageId,
+          citations: res.data.citations || [],
+          confidence: res.data.confidence,
+          responseTime: res.data.responseTime,
+          feedback: null,
         },
       ]);
       // Refresh sidebar
@@ -136,30 +159,72 @@ export default function ChatBox() {
     try {
       setSessionId(id);
 
-      const res = await api.get(`/chat/history/${id}`);
+      const res = await api.get<
+        Array<{
+          id: string | number;
+          question: string;
+          answer: string;
+          createdAt: string;
+          citations?: Citation[];
+          confidence?: number;
+          responseTime?: number;
+          feedback?: boolean | null;
+        }>
+      >(`/chat/history/${id}`);
 
-      const formatted = [];
+      const formatted: Message[] = [];
 
       res.data.forEach((msg: any) => {
         formatted.push({
           id: msg.id + '-q',
           role: 'user',
           text: msg.question,
-          time: new Date(msg.createdAt).toLocaleTimeString(),
+          time: new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
         });
 
         formatted.push({
           id: msg.id + '-a',
           role: 'bot',
           text: msg.answer,
-          time: new Date(msg.createdAt).toLocaleTimeString(),
+          time: new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          messageId: Number(msg.id),
+          citations: msg.citations || [],
+          confidence: msg.confidence === 1 ? 'HIGH' : msg.confidence >= 0.6 ? 'MEDIUM' : 'LOW',
+          responseTime: msg.responseTime,
+          feedback: msg.feedback,
         });
-      });
+      }); // <-- THIS WAS MISSING
 
       setMessages(formatted);
       await getSessions(); // refresh order
     } catch (err) {
       console.log(err);
+    }
+  }
+
+  //feedback function
+  async function submitFeedback(messageId: number, helpful: boolean, messageKey: string) {
+    try {
+      await api.patch(`/chat/${messageId}/feedback`, { helpful });
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageKey
+            ? {
+                ...m,
+                feedback: helpful,
+              }
+            : m,
+        ),
+      );
+    } catch (error) {
+      console.error('Feedback failed:', error);
     }
   }
 
@@ -573,29 +638,104 @@ export default function ChatBox() {
 
                 {/* Bot Message + Time */}
                 <div className="flex flex-col">
-                  <div className="max-w-md rounded-2xl rounded-tl-none border border-gray-300 bg-gray-100 p-3 text-gray-800 shadow">
-                    {m.text}
-                  </div>
+                  <div className="max-w-3xl rounded-3xl rounded-tl-none border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="prose prose-slate prose-headings:mt-0 prose-headings:mb-3 prose-p:my-3 prose-li:my-1 prose-strong:text-slate-900 prose-code:text-blue-700 max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+                    </div>
 
-                  {/* Time */}
-                  <span className="mt-1 ml-2 text-xs text-slate-400">{m.time}</span>
+                    {m.citations && m.citations.length > 0 && (
+                      <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+                        <p className="mb-2 text-xs font-semibold text-slate-500">Sources</p>
+                        <div className="space-y-2">
+                          {m.citations.map((c) => (
+                            <button
+                              key={c.articleId}
+                              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-blue-700 hover:bg-blue-50"
+                            >
+                              <span className="truncate">{c.title}</span>
+                              <ExternalLink size={14} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                      <span>{m.time}</span>
+
+                      {m.responseTime && <span>{m.responseTime} ms</span>}
+
+                      {m.confidence && (
+                        <span className="rounded-full bg-green-100 px-2 py-1 text-green-700">
+                          {m.confidence}
+                        </span>
+                      )}
+                    </div>
+
+                    {m.messageId && (
+                      <div className="mt-4 border-t border-slate-100 pt-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm text-slate-600">Was this response helpful?</p>
+
+                          <div className="flex items-center gap-2">
+                            {/* Helpful */}
+                            <button
+                              onClick={() => submitFeedback(m.messageId!, true, m.id)}
+                              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                                m.feedback === true
+                                  ? 'border border-green-200 bg-green-100 text-green-700'
+                                  : 'border border-transparent text-slate-500 hover:bg-slate-100'
+                              }`}
+                            >
+                              <ThumbsUp size={16} />
+                              {m.feedback === true && <span>Helpful</span>}
+                            </button>
+
+                            {/* Not Helpful */}
+                            <button
+                              onClick={() => submitFeedback(m.messageId!, false, m.id)}
+                              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                                m.feedback === false
+                                  ? 'border border-red-200 bg-red-100 text-red-700'
+                                  : 'border border-transparent text-slate-500 hover:bg-slate-100'
+                              }`}
+                            >
+                              <ThumbsDown size={16} />
+                              {m.feedback === false && <span>Not helpful</span>}
+                            </button>
+                          </div>
+                        </div>
+
+                        {m.feedback !== null && (
+                          <div
+                            className={`mt-3 rounded-lg border px-3 py-2 text-xs ${
+                              m.feedback
+                                ? 'border-green-100 bg-green-50 text-green-700'
+                                : 'border-red-100 bg-red-50 text-red-700'
+                            }`}
+                          >
+                            {m.feedback
+                              ? 'Thank you for your feedback.'
+                              : 'Thank you for your feedback. We’ll use it to improve future responses.'}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ),
           )}
           {isLoading && (
             <div className="flex items-start gap-3">
-              {/* Bot Icon */}
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 shadow-md">
                 <Bot size={20} className="text-white" />
               </div>
 
-              {/* Loading Bubble */}
-              <div className="rounded-2xl rounded-tl-none border border-gray-300 bg-gray-100 px-5 py-3 shadow">
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600 delay-150"></span>
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-blue-600 delay-300"></span>
+              <div className="rounded-3xl rounded-tl-none border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div className="flex items-center gap-2 text-slate-500">
+                  <Loader2 size={16} className="animate-spin" />
+                  <span className="text-sm">Thinking...</span>
                 </div>
               </div>
             </div>

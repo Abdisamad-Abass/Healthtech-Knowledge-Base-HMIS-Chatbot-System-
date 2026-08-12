@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import api from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { assets } from '@/assets/assets';
 
 import { Eye, EyeOff } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,13 +25,16 @@ export default function Login() {
     password: '',
   });
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
-  const handleLogin = async (e) => {
+
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -56,19 +63,24 @@ export default function Login() {
           break;
 
         case 'VIEWER':
-          router.push('/viewer/dashboard');
+          router.push('/viewer');
           break;
 
         default:
           router.push('/login');
       }
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as any).response?.data?.message
+          : null;
+
+      alert(message || 'Login failed');
     } finally {
       setLoading(false);
     }
   };
-  const handleRegister = async (e) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
@@ -89,8 +101,13 @@ export default function Login() {
         email: '',
         password: '',
       });
-    } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as any).response?.data?.message
+          : null;
+
+      alert(message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -177,43 +194,52 @@ export default function Login() {
               </div>
               {/* Name (Register only) */}
               {!isLogin && (
-                <div>
-                  <label className="mb-1 block text-gray-500">Full Name</label>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-gray-500">
+                    Full Name <span className="text-red-500">*</span>
+                  </Label>
 
-                  <input
+                  <Input
+                    id="name"
                     type="text"
                     name="name"
                     value={form.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className="input"
+                    className=""
                   />
                 </div>
               )}
               {/* Email*/}
-              <div className="mt-2">
-                <label className="mb-1 text-gray-500">Email Address</label>
-                <input
+              <div className="mt-2 space-y-2">
+                <Label htmlFor="email" className="text-gray-500">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
                   type="email"
-                  className="input"
+                  className=""
                   placeholder="Enter your Email"
                 />
               </div>
 
               {/* Password */}
-              <div>
-                <label className="mb-1 block text-gray-500">Password</label>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-500">
+                  Password <span className="text-red-500">*</span>
+                </Label>
 
                 <div className="relative">
-                  <input
+                  <Input
+                    id="password"
                     name="password"
                     value={form.password}
                     onChange={handleChange}
                     type={showPassword ? 'text' : 'password'}
-                    className="input pr-12"
+                    className="pr-12"
                     placeholder="Enter Password"
                   />
 
@@ -228,13 +254,13 @@ export default function Login() {
                 </div>
               </div>
 
-              <button type="submit" className="button text-white">
+              <Button type="submit" className="w-full text-white">
                 {loading
                   ? 'Please Wait...'
                   : isLogin
                     ? 'Sign in to Dashboard'
                     : 'Create professional account'}
-              </button>
+              </Button>
             </form>
           </div>
         </article>

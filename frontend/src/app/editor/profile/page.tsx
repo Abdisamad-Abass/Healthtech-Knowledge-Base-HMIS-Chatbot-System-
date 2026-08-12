@@ -15,6 +15,9 @@ import {
 
 import api from '@/lib/api';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
 interface UserProfile {
   id: string;
   name: string;
@@ -92,137 +95,128 @@ export default function EditorProfilePage() {
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto w-full max-w-6xl">
+      <div>
         {/* PAGE HEADER */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-xl font-bold text-[#0F52BA]">My Profile</h1>
-
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="text-primary text-2xl font-bold">My profile</h1>
+            <p className="text-muted-foreground mt-1">
               Manage your editor account and view your account information.
             </p>
           </div>
 
-          <button className="flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50">
-            <Edit3 size={16} />
-            Edit Profile
-          </button>
+          <Button variant="outline">
+            <Edit3 className="mr-2 size-4" /> Edit profile
+          </Button>
         </div>
 
         {/* PROFILE HERO */}
-        <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <Card className="overflow-hidden">
           {/* COVER */}
-          <div className="h-28 bg-gradient-to-r from-[#0F52BA] via-blue-600 to-blue-400 sm:h-40" />
-
+          <div className="from-primary h-32 bg-gradient-to-r via-blue-600 to-cyan-500" />
           {/* PROFILE INFO */}
-          <div className="mt-2 px-5 pb-6 sm:px-8">
+          <CardContent className="mt-7 px-6 pb-6 sm:px-8">
             <div className="-mt-12 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                 {/* AVATAR */}
-                <div className="flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-blue-100 text-2xl font-bold text-[#0F52BA] shadow-md sm:h-28 sm:w-28">
+                <div className="border-background bg-primary text-primary-foreground flex size-24 items-center justify-center rounded-2xl border-4 text-2xl font-bold shadow-lg">
                   {initials}
                 </div>
 
                 <div className="pb-1">
-                  <h2 className="text-2xl font-bold text-gray-800">{profile.name}</h2>
+                  <h2 className="text-foreground text-2xl font-bold">{profile.name}</h2>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-[#0F52BA]">
-                      <ShieldCheck size={14} />
-                      Editor
+                    <span className="badge badge-role-editor">
+                      <ShieldCheck className="size-3.5" /> Editor
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                      <CheckCircle2 size={14} />
-                      Active Account
+                    <span className="badge badge-published">
+                      <span className="badge-dot" /> Active account
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <CalendarDays size={16} />
-
-                <span>Member since {memberSince}</span>
+              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                <CalendarDays className="size-4" /> <span>Member since {memberSince}</span>
               </div>
             </div>
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        {/* PROFILE CONTENT */}
+        {/* Account information card */}
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* ACCOUNT INFORMATION */}
-          <section className="lg:col-span-2">
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-              <div className="border-b border-gray-100 px-6 py-5">
+          <Card className="lg:col-span-2">
+            <div className="border-l-primary animate-fade-in-up rounded-2xl delay-150">
+              <CardHeader>
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-[#0F52BA]">
-                    <UserRound size={19} />
+                  <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
+                    <UserRound className="size-5" />
+                  </div>
+                  <div>
+                    <CardTitle>Account information</CardTitle>
+                    <CardDescription> Your personal and account details </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <ProfileInfo
+                    icon={<User className="size-4" />}
+                    label="Full name"
+                    value={profile.name}
+                  />
+                  <ProfileInfo
+                    icon={<Mail className="size-4" />}
+                    label="Email address"
+                    value={profile.email}
+                  />
+                  <ProfileInfo
+                    icon={<ShieldCheck className="size-4" />}
+                    label="Account role"
+                    value="Editor"
+                  />
+                  <ProfileInfo
+                    icon={<CheckCircle2 className="size-4" />}
+                    label="Account status"
+                    value="Active"
+                    valueClassName="text-success"
+                  />
+                  <ProfileInfo
+                    icon={<CalendarDays className="size-4" />}
+                    label="Joined"
+                    value={new Date(profile.createdAt).toLocaleDateString()}
+                  />
+                  <ProfileInfo
+                    icon={<Clock3 className="size-4" />}
+                    label="Last profile update"
+                    value={lastUpdated}
+                  />
+                </div>
+              </CardContent>
+            </div>
+          </Card>
+
+          {/* ROLE & Permission CARD */}
+          <section>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
+                    <ShieldCheck size={19} />
                   </div>
 
                   <div>
-                    <h2 className="font-semibold text-gray-800">Account Information</h2>
-
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      Your personal and account details
-                    </p>
+                    <CardTitle>Editor access</CardTitle>
+                    <CardDescription> Your workspace permissions </CardDescription>
                   </div>
                 </div>
-              </div>
+              </CardHeader>
 
-              <div className="grid grid-cols-1 gap-5 p-6 sm:grid-cols-2">
-                <ProfileInfo icon={<User size={17} />} label="Full Name" value={profile.name} />
-
-                <ProfileInfo
-                  icon={<Mail size={17} />}
-                  label="Email Address"
-                  value={profile.email}
-                />
-
-                <ProfileInfo icon={<ShieldCheck size={17} />} label="Account Role" value="Editor" />
-
-                <ProfileInfo
-                  icon={<CheckCircle2 size={17} />}
-                  label="Account Status"
-                  value="Active"
-                  valueClassName="text-green-600"
-                />
-
-                <ProfileInfo
-                  icon={<CalendarDays size={17} />}
-                  label="Joined"
-                  value={new Date(profile.createdAt).toLocaleDateString(undefined, {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
-                />
-
-                <ProfileInfo
-                  icon={<Clock3 size={17} />}
-                  label="Last Profile Update"
-                  value={lastUpdated}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* ROLE CARD */}
-          <section>
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-                  <ShieldCheck size={19} />
-                </div>
-
-                <div>
-                  <h2 className="font-semibold text-gray-800">Editor Access</h2>
-
-                  <p className="mt-0.5 text-xs text-gray-500">Your workspace permissions</p>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-3">
+              <CardContent className="space-y-3">
                 <PermissionItem label="Create Articles" allowed />
 
                 <PermissionItem label="Edit Articles" allowed />
@@ -232,17 +226,17 @@ export default function EditorProfilePage() {
                 <PermissionItem label="View Knowledge Base Analytics" allowed />
 
                 <PermissionItem label="Manage System Users" allowed={false} />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </section>
         </div>
 
         {/* ACCOUNT OVERVIEW */}
         <section className="mt-6">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Account Overview</h2>
+            <h2 className="text-foreground text-lg font-semibold">Account Overview</h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted-foreground mt-1 text-sm">
               A quick overview of your activity in the knowledge base.
             </p>
           </div>
@@ -252,44 +246,44 @@ export default function EditorProfilePage() {
               label="Account Status"
               value="Active"
               icon={<CheckCircle2 size={19} />}
-              iconClass="bg-green-100 text-green-600"
-              valueClassName="text-green-600"
+              iconClass="bg-success-bg text-success"
+              valueClassName="text-success"
             />
 
             <OverviewCard
               label="Workspace"
               value="Editor"
               icon={<ShieldCheck size={19} />}
-              iconClass="bg-blue-100 text-[#0F52BA]"
+              iconClass="bg-primary/10 text-primary"
             />
 
             <OverviewCard
               label="Member Since"
               value={memberSince}
               icon={<CalendarDays size={19} />}
-              iconClass="bg-purple-100 text-purple-600"
+              iconClass="bg-info-bg text-info"
             />
 
             <OverviewCard
               label="Profile"
               value="Complete"
               icon={<Activity size={19} />}
-              iconClass="bg-orange-100 text-orange-600"
+              iconClass="bg-warning-bg text-warning"
             />
           </div>
         </section>
 
         {/* SECURITY NOTICE */}
-        <section className="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5">
+        <section className="alert-info animate-fade-in-up mt-5 rounded-2xl border p-5 delay-450">
           <div className="flex gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#0F52BA]">
-              <ShieldCheck size={19} />
+            <div className="bg-info-bg text-info flex size-10 items-center justify-center rounded-xl">
+              <ShieldCheck className="size-5" />
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-800">Keep your account secure</h3>
+              <h3 className="text-foreground font-semibold"> Keep your account secure </h3>
 
-              <p className="mt-1 text-sm leading-6 text-gray-600">
+              <p className="text-muted-foreground mt-1 text-sm leading-6">
                 Never share your password or authentication details with anyone. If you believe your
                 account has been compromised, contact the system administrator immediately.
               </p>
@@ -307,7 +301,7 @@ function ProfileInfo({
   icon,
   label,
   value,
-  valueClassName = 'text-gray-800',
+  valueClassName = 'text-foreground',
 }: {
   icon: React.ReactNode;
   label: string;
@@ -315,14 +309,22 @@ function ProfileInfo({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-      <div className="flex items-center gap-2 text-gray-500">
-        {icon}
+    <div className="group border-border bg-primary/5 hover:border-primary/20 hover:bg-primary/10 rounded-2xl border p-5 transition-all duration-200">
+      <div className="flex items-center gap-3">
+        <div className="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200">
+          {icon}
+        </div>
 
-        <span className="text-xs font-medium">{label}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            {label}
+          </p>
+
+          <p className={`text-foreground mt-1 text-sm font-semibold break-words ${valueClassName}`}>
+            {value}
+          </p>
+        </div>
       </div>
-
-      <p className={`mt-2 text-sm font-semibold break-words ${valueClassName}`}>{value}</p>
     </div>
   );
 }
@@ -331,26 +333,25 @@ function ProfileInfo({
 
 function PermissionItem({ label, allowed }: { label: string; allowed: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-3">
-      <span className="text-sm text-gray-700">{label}</span>
+    <div className="border-border bg-muted/30 flex items-center justify-between rounded-xl border px-3 py-3">
+      <span className="text-foreground text-sm">{label}</span>
 
       {allowed ? (
-        <CheckCircle2 size={17} className="text-green-600" />
+        <CheckCircle2 size={17} className="text-success" />
       ) : (
-        <span className="text-xs font-medium text-gray-400">Restricted</span>
+        <span className="text-muted-foreground text-xs font-medium">Restricted</span>
       )}
     </div>
   );
 }
 
 /* OVERVIEW CARD */
-
 function OverviewCard({
   label,
   value,
   icon,
   iconClass,
-  valueClassName = 'text-gray-800',
+  valueClassName = 'text-foreground',
 }: {
   label: string;
   value: string;
@@ -359,10 +360,10 @@ function OverviewCard({
   valueClassName?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+    <div className="border-border bg-card rounded-2xl border p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500">{label}</p>
+          <p className="text-muted-foreground text-sm">{label}</p>
 
           <p className={`mt-2 text-lg font-bold ${valueClassName}`}>{value}</p>
         </div>
@@ -382,28 +383,28 @@ function ProfileLoading() {
     <main className="min-h-screen">
       <div className="mx-auto max-w-6xl animate-pulse">
         <div className="mb-6">
-          <div className="h-6 w-40 rounded bg-gray-200" />
-          <div className="mt-2 h-4 w-80 rounded bg-gray-200" />
+          <div className="bg-primary/10 h-6 w-40 rounded" />
+          <div className="bg-primary/30 mt-2 h-4 w-80 rounded" />
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-          <div className="h-40 bg-gray-200" />
+        <div className="border-border bg-card overflow-hidden rounded-2xl border">
+          <div className="bg-primary/10 h-40" />
 
           <div className="px-8 pb-6">
             <div className="-mt-14 flex items-end gap-4">
-              <div className="h-28 w-28 rounded-2xl bg-gray-300" />
+              <div className="bg-primary/30 h-28 w-28 rounded-2xl" />
 
               <div className="pb-2">
-                <div className="h-6 w-48 rounded bg-gray-200" />
-                <div className="mt-3 h-6 w-28 rounded-full bg-gray-200" />
+                <div className="bg-primary/10 h-6 w-48 rounded" />
+                <div className="bg-primary/10 mt-3 h-6 w-28 rounded-full" />
               </div>
             </div>
           </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="h-80 rounded-2xl bg-gray-200 lg:col-span-2" />
-          <div className="h-80 rounded-2xl bg-gray-200" />
+          <div className="bg-primary/10 h-80 rounded-2xl lg:col-span-2" />
+          <div className="bg-primary/10 h-80 rounded-2xl" />
         </div>
       </div>
     </main>

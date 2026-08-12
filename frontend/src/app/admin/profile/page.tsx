@@ -13,6 +13,8 @@ import {
   UsersRound,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface UserProfile {
   id: string;
@@ -49,11 +51,9 @@ export default function AdminProfilePage() {
   if (!user) {
     return (
       <div className="flex min-h-[70vh] items-center justify-center">
-        {' '}
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-5 text-center">
-          {' '}
-          <p className="font-medium text-red-600">Failed to load profile.</p>{' '}
-        </div>{' '}
+        <div className="alert-danger rounded-2xl border px-6 py-5 text-center">
+          <p className="font-medium">Failed to load profile.</p>
+        </div>
       </div>
     );
   }
@@ -67,91 +67,107 @@ export default function AdminProfilePage() {
 
   return (
     <main className="mx-auto w-full max-w-6xl">
-      {/* Page Header */}{' '}
+      {/* Page Header */}
       <div className="mb-8">
-        {' '}
-        <p className="text-sm font-medium text-[#0F52BA]">Account Management</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-gray-900">My Profile</h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="text-primary text-sm font-medium">Account management</p>
+        <h1 className="text-foreground mt-1 text-3xl font-bold tracking-tight">My profile</h1>
+        <p className="text-muted-foreground mt-2 text-sm">
           Manage your administrator account and view your system access information.
         </p>
       </div>
       {/* Profile Hero */}
-      <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-        <div className="h-32 bg-gradient-to-r from-[#0F52BA] via-[#2563EB] to-[#82AEF0]" />
+      <Card className="overflow-hidden rounded-3xl p-0">
+        <div className="from-primary via-primary-hover to-chart-1 h-32 bg-gradient-to-r" />
 
-        <div className="relative mt-3 px-6 pb-6 sm:px-8">
+        <div className="relative mt-5 px-6 pb-6 sm:px-8">
           <div className="-mt-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               {/* Avatar */}
-              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border-4 border-white bg-[#0F52BA] text-2xl font-bold text-white shadow-lg">
+              <div className="bg-primary text-primary-foreground flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border-4 border-white text-2xl font-bold shadow-lg">
                 {initials}
               </div>
 
               <div className="pb-1">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
+                  <h2 className="text-foreground text-2xl font-bold">{user.name}</h2>
 
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-[#0F52BA]">
+                  <span className="badge badge-approved">
                     <ShieldCheck size={14} />
                     Administrator
                   </span>
                 </div>
 
-                <p className="mt-1 text-sm text-gray-500">{user.email}</p>
+                <p className="text-muted-foreground mt-1 text-sm">{user.email}</p>
               </div>
             </div>
 
-            <button className="flex w-fit items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50">
+            <Button variant="outline" className="gap-2">
               <Edit3 size={16} />
-              Edit Profile
-            </button>
+              Edit profile
+            </Button>
           </div>
         </div>
-      </section>
+      </Card>
       {/* Main Content */}
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Account Information */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm xl:col-span-2">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-[#0F52BA]">
-              <UserRound size={19} />
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
+                <UserRound size={19} />
+              </div>
+
+              <div>
+                <CardTitle>Account information</CardTitle>
+                <CardDescription> Your personal and account details </CardDescription>
+              </div>
             </div>
+          </CardHeader>
 
-            <div>
-              <h2 className="font-semibold text-gray-900">Account Information</h2>
+          <CardContent>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <InfoItem icon={<UserRound size={17} />} label="Full Name" value={user.name} />
 
-              <p className="text-sm text-gray-500">Your basic account details</p>
+              <InfoItem icon={<Mail size={17} />} label="Email Address" value={user.email} />
+
+              <InfoItem
+                icon={<ShieldCheck size={17} />}
+                label="Account Role"
+                value="Administrator"
+              />
+
+              <InfoItem
+                icon={<CheckCircle2 size={17} />}
+                label="Account Status"
+                value="Active"
+                valueClass="text-green-600"
+              />
+              <InfoItem
+                icon={<CalendarDays size={17} />}
+                label="Joined"
+                value={formatDate(user.createdAt)}
+              />
+
+              <InfoItem
+                icon={<Clock3 size={17} />}
+                label="Last Profile Updated"
+                value={formatDate(user.updatedAt)}
+              />
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <InfoItem icon={<UserRound size={17} />} label="Full Name" value={user.name} />
-
-            <InfoItem icon={<Mail size={17} />} label="Email Address" value={user.email} />
-
-            <InfoItem icon={<ShieldCheck size={17} />} label="Account Role" value="Administrator" />
-
-            <InfoItem
-              icon={<CheckCircle2 size={17} />}
-              label="Account Status"
-              value="Active"
-              valueClass="text-green-600"
-            />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
         {/* Role Overview */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <Card className="p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+            <div className="bg-info-bg text-info flex h-10 w-10 items-center justify-center rounded-xl">
               <ShieldCheck size={19} />
             </div>
 
             <div>
-              <h2 className="font-semibold text-gray-900">Administrator Access</h2>
-
-              <p className="text-sm text-gray-500">Your system permissions</p>
+              <h2 className="text-foreground font-semibold">Administrator Access</h2>
+              <p className="text-muted-foreground text-sm">Your system permissions</p>
             </div>
           </div>
 
@@ -163,19 +179,19 @@ export default function AdminProfilePage() {
             <PermissionItem label="View Audit Logs" />
             <PermissionItem label="Manage System Settings" />
           </div>
-        </section>
+        </Card>
 
         {/* Account Timeline */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm xl:col-span-2">
+        <Card className="p-6 xl:col-span-2">
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600">
+            <div className="bg-success-bg text-success flex h-10 w-10 items-center justify-center rounded-xl">
               <Activity size={19} />
             </div>
 
             <div>
-              <h2 className="font-semibold text-gray-900">Account Activity</h2>
+              <h2 className="text-foreground font-semibold">Account Activity</h2>
 
-              <p className="text-sm text-gray-500">Important account dates</p>
+              <p className="text-muted-foreground text-sm">Important account dates</p>
             </div>
           </div>
 
@@ -192,39 +208,39 @@ export default function AdminProfilePage() {
               value={formatDate(user.updatedAt)}
             />
           </div>
-        </section>
+        </Card>
 
         {/* Quick Actions */}
-        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <Card className="p-6 shadow-sm">
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+            <div className="bg-warning-bg text-warning flex h-10 w-10 items-center justify-center rounded-xl">
               <UsersRound size={19} />
             </div>
 
             <div>
-              <h2 className="font-semibold text-gray-900">Quick Actions</h2>
+              <h2 className="text-foreground font-semibold">Quick Actions</h2>
 
-              <p className="text-sm text-gray-500">Frequently used tools</p>
+              <p className="text-muted-foreground text-sm">Frequently used tools</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#0F52BA]">
-              <span>Change Password</span>
+            <Button variant="outline" className="w-full justify-between text-left">
+              <span>Change password</span>
               <span>→</span>
-            </button>
+            </Button>
 
-            <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#0F52BA]">
+            <Button variant="outline" className="w-full justify-between text-left">
               <span>View Audit Logs</span>
               <span>→</span>
-            </button>
+            </Button>
 
-            <button className="flex w-full items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#0F52BA]">
+            <Button variant="outline" className="w-full justify-between text-left">
               <span>System Settings</span>
               <span>→</span>
-            </button>
+            </Button>
           </div>
-        </section>
+        </Card>
       </div>
     </main>
   );
@@ -234,7 +250,7 @@ function InfoItem({
   icon,
   label,
   value,
-  valueClass = 'text-gray-900',
+  valueClass = 'text-foreground',
 }: {
   icon: React.ReactNode;
   label: string;
@@ -242,22 +258,31 @@ function InfoItem({
   valueClass?: string;
 }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-      {' '}
-      <div className="flex items-center gap-2 text-gray-500">
-        {icon} <span className="text-xs font-medium">{label}</span>{' '}
+    <div className="group border-border bg-primary/5 hover:border-primary/20 hover:bg-primary/10 rounded-2xl border p-5 transition-all duration-200">
+      <div className="flex items-center gap-3">
+        <div className="bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200">
+          {icon}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            {label}
+          </p>
+
+          <p className={`text-foreground mt-1 text-sm font-semibold break-words ${valueClass}`}>
+            {value}
+          </p>
+        </div>
       </div>
-      <p className={`mt-2 text-sm font-semibold break-all ${valueClass}`}>{value}</p>
     </div>
   );
 }
 
 function PermissionItem({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-2.5">
-      {' '}
-      <CheckCircle2 size={17} className="shrink-0 text-green-500" />{' '}
-      <span className="text-sm text-gray-700">{label}</span>{' '}
+    <div className="border-border bg-muted/30 flex items-center gap-3 rounded-xl border px-3 py-2.5">
+      <CheckCircle2 size={17} className="text-success shrink-0" />
+      <span className="text-foreground text-sm">{label}</span>
     </div>
   );
 }
@@ -272,14 +297,14 @@ function ActivityItem({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
-      {' '}
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#0F52BA] shadow-sm">
-        {icon}{' '}
+    <div className="border-border bg-muted/30 flex items-center gap-4 rounded-xl border p-4">
+      <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-xl">
+        {icon}
       </div>
+
       <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="mt-1 text-sm font-semibold text-gray-800">{value}</p>
+        <p className="text-muted-foreground text-xs">{label}</p>
+        <p className="text-foreground mt-1 text-sm font-semibold">{value}</p>
       </div>
     </div>
   );
@@ -296,12 +321,10 @@ function formatDate(date: string) {
 function ProfileSkeleton() {
   return (
     <main className="mx-auto w-full max-w-6xl animate-pulse">
-      {' '}
       <div className="mb-8">
-        {' '}
-        <div className="h-4 w-32 rounded bg-gray-200" />{' '}
-        <div className="mt-3 h-9 w-48 rounded bg-gray-200" />{' '}
-        <div className="mt-3 h-4 w-96 max-w-full rounded bg-gray-200" />{' '}
+        <div className="h-4 w-32 rounded bg-gray-200" />
+        <div className="mt-3 h-9 w-48 rounded bg-gray-200" />
+        <div className="mt-3 h-4 w-96 max-w-full rounded bg-gray-200" />
       </div>
       <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
         <div className="h-32 bg-gray-200" />

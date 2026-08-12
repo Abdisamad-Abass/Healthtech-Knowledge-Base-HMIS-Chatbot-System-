@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import {
   FilePenLine,
   CircleAlert,
@@ -11,10 +13,20 @@ import {
   ExternalLink,
   CircleCheck,
   MoveRight,
+  ArrowUpRight,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+
 import api from '@/lib/api';
-import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
 
 type DashboardData = {
   editor: {
@@ -23,7 +35,6 @@ type DashboardData = {
     email: string;
     role: string;
   };
-
   stats: {
     total: number;
     draft: number;
@@ -37,7 +48,6 @@ type DashboardData = {
     views: number;
     avgRating: number;
   };
-
   articles: Array<{
     id: string;
     title: string;
@@ -50,7 +60,6 @@ type DashboardData = {
       name: string;
     } | null;
   }>;
-
   feedbacks: Array<{
     id: string;
     rating: number;
@@ -70,14 +79,11 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        setLoading(true);
-
-        const response = await api.get('/articles/editor/dashboard');
-
-        setDashboard(response.data);
-      } catch (error) {
-        console.error('Failed to fetch editor dashboard:', error);
-        setError('Failed to load dashboard data.');
+        const res = await api.get('/articles/editor/dashboard');
+        setDashboard(res.data);
+      } catch (e) {
+        console.error(e);
+        setError('Failed to load dashboard.');
       } finally {
         setLoading(false);
       }
@@ -88,399 +94,413 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[600px] flex-col items-center justify-center">
-        <div className="relative">
-          {/* Spinner animation */}
-          <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-blue-600"></div>
-          </div>
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="border-primary h-10 w-10 animate-spin rounded-full border-4 border-t-transparent" />
+          <p className="text-muted-foreground text-sm">Loading dashboard...</p>
         </div>
-        <p className="mt-6 font-medium text-gray-500">Loading your dashboard...</p>
       </div>
     );
   }
 
   if (error) {
-    return <div className="rounded-lg bg-red-50 p-5 text-red-600">{error}</div>;
+    return (
+      <Card className="border-danger-border bg-danger-bg">
+        <CardContent className="pt-6">
+          <p className="text-danger">{error}</p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!dashboard) return null;
 
   const { editor, stats, articles, feedbacks } = dashboard;
 
-  /* Dashboard Cards */
-
   const cards = [
     {
       icon: FilePenLine,
-      number: stats.draft,
-      status: 'Draft',
+      value: stats.draft,
+      label: 'Draft articles',
       href: '/editor/drafts',
-      bg: '#E6E8EA',
+      color: 'bg-muted',
     },
     {
       icon: Hourglass,
-      number: stats.submitted + stats.inReview,
-      status: 'Awaiting Review',
+      value: stats.submitted + stats.inReview,
+      label: 'Awaiting review',
       href: '/editor/review',
-      bg: '#E7FCFA',
+      color: 'bg-warning-bg',
     },
     {
       icon: CircleCheck,
-      number: stats.published,
-      status: 'Published',
+      value: stats.published,
+      label: 'Published',
       href: '/editor/published',
-      bg: '#86F2E4',
+      color: 'bg-success-bg',
     },
     {
       icon: CircleAlert,
-      number: stats.rejected,
-      status: 'Rejected — needs changes',
+      value: stats.rejected,
+      label: 'Rejected',
       href: '/editor/rejected',
-      bg: '#FFDAD6',
+      color: 'bg-danger-bg',
     },
   ];
 
-  /* Articles that may need attention */
-
-  const attentionArticles = articles.filter((article) => article.status === 'REJECTED');
-
-  /* Recent Articles */
-
-  const recentArticles = articles.slice(0, 4);
-
-  /* Format Relative Time */
+  const attentionArticles = articles.filter((a) => a.status === 'REJECTED');
+  const recentArticles = articles.slice(0, 5);
 
   const formatTimeAgo = (date: string) => {
-    const updatedDate = new Date(date);
     const now = new Date();
+    const then = new Date(date);
+    const diff = Math.floor((now.getTime() - then.getTime()) / 1000);
 
-    const differenceInSeconds = Math.floor((now.getTime() - updatedDate.getTime()) / 1000);
-
-    // Less than 1 minute
-    if (differenceInSeconds < 60) {
-      return 'Just now';
-    }
-
-    // Minutes
-    const minutes = Math.floor(differenceInSeconds / 60);
-
-    if (minutes < 60) {
-      return `${minutes} ${minutes === 1 ? 'min' : 'mins'} ago`;
-    }
-
-    // Hours
-    const hours = Math.floor(minutes / 60);
-
-    if (hours < 24) {
-      return `${hours} ${hours === 1 ? 'hr' : 'hrs'} ago`;
-    }
-
-    // Days
-    const days = Math.floor(hours / 24);
-
-    if (days < 7) {
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-    }
-
-    // Weeks
-    const weeks = Math.floor(days / 7);
-
-    if (weeks < 4) {
-      return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
-    }
-
-    // Months
-    const months = Math.floor(days / 30);
-
-    if (months < 12) {
-      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
-    }
-
-    // Years
-    const years = Math.floor(days / 365);
-
-    return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+    if (diff < 60) return 'Just now';
+    const mins = Math.floor(diff / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
   };
 
-  /* Status Styling */
-
-  const getStatusStyle = (status: string) => {
+  const statusBadge = (status: string) => {
     switch (status) {
-      case 'PUBLISHED':
-        return 'bg-green-100 text-green-700';
-
       case 'DRAFT':
-        return 'bg-gray-100 text-gray-600';
-
+        return 'badge badge-draft';
       case 'SUBMITTED':
-        return 'bg-blue-100 text-blue-700';
-
+        return 'badge badge-submitted';
       case 'IN_REVIEW':
-        return 'bg-yellow-100 text-yellow-700';
-
+        return 'badge badge-in-review';
       case 'APPROVED':
-        return 'bg-purple-100 text-purple-700';
-
+        return 'badge badge-approved';
+      case 'PUBLISHED':
+        return 'badge badge-published';
       case 'REJECTED':
-        return 'bg-red-100 text-red-700';
-
+        return 'badge badge-rejected';
       case 'ARCHIVED':
-        return 'bg-orange-100 text-orange-700';
-
+        return 'badge badge-archived';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'badge';
     }
   };
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold">
-          Welcome back, {editor.name} — here's your writing overview
-        </h1>
-
-        <p>Review your latest clinical submissions and address pending feedback items.</p>
-      </div>
-
-      {/* Overview Cards */}
-      <section className="mt-10 grid grid-cols-4 gap-3">
-        {cards.map((item, index) => (
-          <div className="rounded-lg border border-[#E4E6ED] bg-white p-5" key={index}>
-            <div className="flex items-center justify-between">
-              <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl"
-                style={{ backgroundColor: item.bg }}
-              >
-                <item.icon />
+    <div className="space-y-8 p-6">
+      {/* Dashboard header */}
+      <Card className="border-border bg-card shadow-sm">
+        <CardContent className="p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-primary h-2 w-2 rounded-full" />
+                <p className="text-muted-foreground text-sm font-medium">Editor workspace</p>
               </div>
 
-              <button className="flex items-center gap-1 text-[#004AC6] hover:underline">
-                View All
-                <MoveRight size={14} />
-              </button>
+              <div className="space-y-1">
+                <h1 className="text-foreground text-3xl font-bold tracking-tight">
+                  Welcome back, {editor.name}
+                </h1>
+
+                <p className="text-muted-foreground max-w-2xl leading-relaxed">
+                  Manage clinical articles, respond to review feedback, and monitor publication
+                  performance from one dashboard.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4 pt-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <CircleCheck className="text-success h-4 w-4" />
+                  <span className="text-muted-foreground">
+                    {stats.published} published articles
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Hourglass className="text-warning h-4 w-4" />
+                  <span className="text-muted-foreground">
+                    {stats.submitted + stats.inReview} awaiting review
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-2">
-              <span className="text-lg font-bold">{item.number}</span>
-              <p>{item.status}</p>
+            <div className="flex gap-3">
+              <Button variant="outline">View drafts</Button>
+
+              <Link href="/editor/articles/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create article
+                </Button>
+              </Link>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Overview cards */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {cards.map((card) => (
+          <Card key={card.label}>
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${card.color}`}
+                >
+                  <card.icon className="text-primary h-6 w-6" />
+                </div>
+
+                <Link href={card.href}>
+                  <Button variant="ghost" size="sm">
+                    View
+                    <ArrowUpRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="mt-2 space-y-1">
+                <p className="text-3xl font-bold">{card.value}</p>
+                <p className="text-muted-foreground text-sm">{card.label}</p>
+              </div>
+            </CardContent>
+          </Card>
         ))}
-      </section>
+      </div>
 
-      {/* Attention and Create Article */}
-      <section className="mt-10 grid grid-cols-[7fr_3fr] gap-5">
-        {/* Needs Attention */}
-        <div className="overflow-hidden rounded-2xl border border-[#F0DADB] bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-[#F0DADB] bg-[#F4EAEB] px-5 py-3">
-            <div className="flex items-center gap-2">
-              <TriangleAlert className="text-[#C14144]" />
+      {/* Attention + CTA */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card className="overflow-hidden xl:col-span-2">
+          <CardHeader className="bg-danger-bg border-danger-border/60 border-b">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-danger-bg rounded-xl p-2">
+                  <TriangleAlert className="text-danger h-5 w-5" />
+                </div>
+                <div>
+                  <CardTitle className="text-foreground text-lg font-semibold">
+                    Needs your attention
+                  </CardTitle>
 
-              <h1 className="text-lg font-bold text-[#C14144]">Needs Your Attention</h1>
+                  <CardDescription className="text-muted-foreground mt-1">
+                    Articles that require revision before publication
+                  </CardDescription>
+                </div>
+              </div>
+
+              <span className="badge badge-rejected">{attentionArticles.length} pending</span>
             </div>
+          </CardHeader>
 
-            <span className="font-bold text-[#C14144]">{attentionArticles.length} Alerts</span>
-          </div>
-
-          <div className="mt-3 space-y-3 px-5 py-3">
+          <CardContent className="space-y-4 pt-6">
             {attentionArticles.length === 0 ? (
-              <p className="py-5 text-center text-gray-500">
-                No articles currently need your attention.
-              </p>
+              <div className="text-muted-foreground flex h-32 items-center justify-center rounded-xl border border-dashed">
+                No articles currently require attention.
+              </div>
             ) : (
               attentionArticles.map((article) => (
                 <div
                   key={article.id}
-                  className="rounded-xl border border-[#F4EAEB] bg-white px-4 py-3"
+                  className="border-border flex flex-col gap-4 rounded-xl border p-4 md:flex-row md:items-center md:justify-between"
                 >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-bold">{article.title}</h2>
-
-                      <p className="text-sm text-gray-700">
-                        {article.reviewComments ||
-                          'This article requires changes before resubmission.'}
-                      </p>
-                    </div>
-
-                    <button className="rounded-xl bg-[#004AC6] px-5 py-2 font-bold text-white">
-                      Revise & Resubmit
-                    </button>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold">{article.title}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {article.reviewComments ??
+                        'This article requires changes before resubmission.'}
+                    </p>
                   </div>
+
+                  <Button>
+                    Revise article
+                    <MoveRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               ))
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+        {/* ready to publish part */}
+        <Card className="bg-primary text-primary-foreground border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="text-primary-foreground">Ready to publish?</CardTitle>
 
-        {/* Create Article */}
-        <div className="flex flex-col rounded-xl bg-[#0C53C9] p-7">
-          <div>
-            <h1 className="text-lg font-bold text-white">Ready to publish?</h1>
+            <CardDescription className="text-primary-foreground/80">
+              Create a new article using standardized clinical templates.
+            </CardDescription>
+          </CardHeader>
 
-            <p className="mt-1 text-white">
-              Use our standardized clinical templates to ensure your SOPs meet compliance standards.
-            </p>
-          </div>
+          <CardContent className="flex flex-1 flex-col justify-end">
+            <Link href="/editor/articles/new" className="w-full">
+              <Button
+                variant="outline"
+                className="bg-card text-primary hover:bg-card/90 w-full border-white/10"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create new article
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
 
-          <Link
-            href="/editor/articles/new"
-            className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-white px-5 py-4 font-bold text-[#0C53C9]"
-          >
-            <Plus />
-            <span>Create New Article</span>
-          </Link>
-        </div>
-      </section>
+      {/* Articles + Sidebar */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        <Card className="overflow-hidden xl:col-span-2">
+          <CardHeader className="bg-muted-soft border-border border-b">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-foreground text-lg font-semibold">
+                  Recent articles
+                </CardTitle>
 
-      {/* My Articles and Feedback */}
-      <section className="mt-10 grid grid-cols-[8fr_3fr] gap-5">
-        {/* Recent Articles */}
-        <div className="overflow-hidden rounded-xl border border-gray-400 bg-white">
-          <div className="flex items-center justify-between border-b border-gray-400 px-5 py-3">
-            <h1 className="text-lg font-bold">My Recent Articles</h1>
+                <CardDescription className="text-muted-foreground mt-1">
+                  Your latest article activity
+                </CardDescription>
+              </div>
 
-            <button className="text-sm font-semibold text-[#0C53C9] hover:underline">
-              View History
-            </button>
-          </div>
+              <Button variant="outline" size="sm">
+                View all
+              </Button>
+            </div>
+          </CardHeader>
 
-          <div className="scrollbar-thin scrollbar-thumb-gray-400 overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-[#F2F4F6]">
-                <tr>
-                  <th className="px-5 py-2 font-semibold tracking-wide text-gray-500">TITLE</th>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Updated</TableHead>
+                  <TableHead className="text-right">Rating</TableHead>
+                </TableRow>
+              </TableHeader>
 
-                  <th className="px-5 py-2 font-semibold tracking-wide text-gray-500">CATEGORY</th>
-
-                  <th className="px-5 py-2 font-semibold tracking-wide text-gray-500">STATUS</th>
-
-                  <th className="px-5 py-2 font-semibold tracking-wide text-gray-500">UPDATED</th>
-
-                  <th className="px-5 py-2 font-semibold tracking-wide text-gray-500">RATING</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-gray-400">
+              <TableBody>
                 {recentArticles.map((article) => (
-                  <tr key={article.id} className="transition-colors hover:bg-gray-50">
-                    {/* Title */}
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <p className="font-semibold text-gray-900">{article.title}</p>
-                    </td>
+                  <TableRow key={article.id}>
+                    <TableCell className="font-medium">{article.title}</TableCell>
 
-                    {/* Category */}
-                    <td className="px-5 py-4 whitespace-nowrap text-gray-600">
-                      {article.category?.name || 'Uncategorized'}
-                    </td>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {article.category?.name ?? 'Uncategorized'}
+                    </TableCell>
 
-                    {/* Status */}
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusStyle(
-                          article.status,
-                        )}`}
-                      >
+                    <TableCell>
+                      <span className={statusBadge(article.status)}>
                         {article.status.replace('_', ' ')}
                       </span>
-                    </td>
+                    </TableCell>
 
-                    {/* Updated */}
-                    <td className="px-5 py-4 whitespace-nowrap text-gray-500">
-                      <span className="text-gray-500">{formatTimeAgo(article.updatedAt)}</span>
-                    </td>
+                    <TableCell className="text-muted-foreground">
+                      {formatTimeAgo(article.updatedAt)}
+                    </TableCell>
 
-                    {/* Rating */}
-                    <td className="px-5 py-4 whitespace-nowrap">
+                    <TableCell className="text-right">
                       {article.avgRating > 0 ? (
-                        <div className="flex items-center gap-1 font-semibold text-gray-700">
-                          <Star size={16} fill="currentColor" className="text-yellow-400" />
-
+                        <div className="flex items-center justify-end gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           {article.avgRating.toFixed(1)}
                         </div>
                       ) : (
-                        <span className="text-sm text-gray-400">—</span>
+                        '—'
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
 
-        {/* Right Side */}
-        <div className="grid grid-cols-1 gap-3">
-          {/* Feedback Alert */}
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <h1 className="font-bold">Feedback Alert</h1>
+        <div className="space-y-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Latest feedback</CardTitle>
+              <CardDescription>Most recent reviewer comment</CardDescription>
+            </CardHeader>
 
-              <div className="h-2 w-2 rounded-full bg-[#BA1A1A]" />
-            </div>
-
-            {feedbacks.length === 0 ? (
-              <p className="mt-5 text-sm text-gray-500">No feedback received yet.</p>
-            ) : (
-              <div className="mt-4">
-                {feedbacks.slice(0, 1).map((feedback) => (
-                  <div key={feedback.id} className="flex items-start gap-2">
-                    <div className="rounded-xl bg-[#FFDAD6] p-2">
-                      <ThumbsDown />
+            <CardContent>
+              {feedbacks.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No feedback received yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-danger-bg rounded-xl p-2">
+                      <ThumbsDown className="text-danger h-5 w-5" />
                     </div>
 
                     <div>
-                      <h2 className="font-bold">{feedback.article.title}</h2>
+                      <h4 className="font-medium">{feedbacks[0].article.title}</h4>
 
-                      <div className="flex items-center">
-                        <Star className="fill-[#BB1A1C] text-[#BB1A1C]" size={13} />
-
-                        <span className="font-bold text-[#BB1A1C]">{feedback.rating}</span>
+                      <div className="mt-1 flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-sm font-medium">{feedbacks[0].rating}/5</span>
                       </div>
                     </div>
                   </div>
-                ))}
 
-                <div className="mt-2 border-l-2 border-gray-500">
-                  <p className="ml-2 font-medium text-gray-700 italic">
-                    {feedbacks[0].comment || 'No comment provided.'}
-                  </p>
+                  <div className="bg-muted border-primary rounded-lg border-l-4 p-3">
+                    <p className="text-sm italic">
+                      {feedbacks[0].comment ?? 'No comment provided.'}
+                    </p>
+                  </div>
+
+                  <Button variant="outline" className="w-full">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View feedback
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance summary</CardTitle>
+              <CardDescription>Your publishing performance</CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-5">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Total articles</span>
+                <span className="font-semibold">{stats.total}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Total views</span>
+                <span className="font-semibold">{stats.views}</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-sm">Average rating</span>
+                <span className="font-semibold">
+                  {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—'}
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span>Publication progress</span>
+                  <span>
+                    {stats.published}/{stats.total}
+                  </span>
                 </div>
 
-                <button className="mt-2 flex items-center gap-1 font-bold text-blue-500 hover:underline">
-                  View Feedback
-                  <ExternalLink size={12} />
-                </button>
+                <div className="bg-muted h-2 rounded-full">
+                  <div
+                    className="bg-primary h-2 rounded-full"
+                    style={{
+                      width: `${stats.total > 0 ? (stats.published / stats.total) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Weekly Summary */}
-          <div className="card">
-            <h1 className="font-bold">Performance Summary</h1>
-
-            <div className="mt-3 flex items-center justify-between">
-              <p>Total Articles</p>
-              <span className="font-bold">{stats.total}</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p>Total Views</p>
-              <span className="font-bold">{stats.views}</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <p>Average Rating</p>
-              <span className="font-bold">
-                {stats.avgRating > 0 ? stats.avgRating.toFixed(1) : '—'}
-              </span>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

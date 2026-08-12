@@ -360,7 +360,23 @@ exports.getById = async (req, res) => {
 
         tags: true,
         versions: true,
-        feedback: true,
+        feedback: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
         embedding: true,
       },
     });
@@ -421,6 +437,8 @@ exports.getById = async (req, res) => {
     res.json({
       ...article,
 
+      avgRating: article.avgRating,
+      reviewCount: article.reviewCount,
       relatedArticles,
     });
   } catch (error) {
@@ -1585,7 +1603,23 @@ exports.getBySlug = async (req, res) => {
         },
         tags: true,
         versions: true,
-        feedback: true,
+        feedback: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
         embedding: true,
       },
     });

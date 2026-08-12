@@ -69,10 +69,26 @@ say:
 Always include citations.
 
 =========================
+FORMATTING RULES
+=========================
+
+- Format the answer using Markdown.
+- Do NOT repeat the article title at the beginning of the answer.
+- Start the response directly with the explanation or procedure.
+- Use ## headings when appropriate.
+- Use numbered lists for procedures.
+- Use bullet points for options or notes.
+- Put important buttons, menu items, and field names in **bold**.
+- Keep paragraphs short.
+- Make answers visually easy to scan in a chat interface.
+- Return the Markdown content inside the JSON answer field.
+
+=========================
 OUTPUT FORMAT
 =========================
 
 Return ONLY valid JSON.
+
 
 {
   "answer":"...",

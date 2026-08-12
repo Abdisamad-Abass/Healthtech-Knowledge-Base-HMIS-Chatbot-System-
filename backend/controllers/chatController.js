@@ -1,5 +1,5 @@
 const { prisma } = require("../config/database");
-
+const { withTimeout, retryPrisma } = require("../utils/db");
 const { createEmbedding } = require("../services/embeddingService");
 
 const { askGroq } = require("../services/groqService");
@@ -24,9 +24,7 @@ exports.chat = async (req, res) => {
       });
     }
 
-    // ===============================
     // CREATE / GET SESSION
-    // ===============================
 
     let session;
 
@@ -39,13 +37,25 @@ exports.chat = async (req, res) => {
     }
 
     if (!session) {
-      session = await prisma.chatSession.create({
-        data: {
-          title: question.substring(0, 50),
+      try {
+        session = await retryPrisma(() =>
+          withTimeout(
+            prisma.chatSession.create({
+              data: {
+                title: question.substring(0, 50),
+                userId,
+              },
+            }),
+            10000,
+          ),
+        );
+      } catch (err) {
+        console.error("Failed to create chat session:", err);
 
-          userId,
-        },
-      });
+        return res.status(503).json({
+          message: "Database temporarily unavailable. Please try again.",
+        });
+      }
     }
 
     // ===============================
@@ -74,18 +84,21 @@ exports.chat = async (req, res) => {
 
       const responseTime = Date.now() - totalStart;
 
-      await prisma.chatMessage.create({
-        data: {
-          question,
-
-          answer,
-
-          sessionId: session.id,
-          responseTime,
-          confidence: 1,
-          citations: [],
-        },
-      });
+      await retryPrisma(() =>
+        withTimeout(
+          prisma.chatMessage.create({
+            data: {
+              question,
+              answer,
+              sessionId: session.id,
+              responseTime,
+              confidence: 1,
+              citations: [],
+            },
+          }),
+          10000,
+        ),
+      );
       await prisma.chatSession.update({
         where: {
           id: session.id,
@@ -128,9 +141,6 @@ exports.chat = async (req, res) => {
 
       return res.json({
         answer,
-
-        sessionId: session.id,
-
         confidence: "HIGH",
         responseTime,
         sessionId: session.id,
@@ -266,9 +276,8 @@ exports.chat = async (req, res) => {
     // smaller = more similar
     // larger = less similar
 
-    // ======================================
     // FILTER RELEVANT RESULTS
-    // ======================================
+
     console.log(
       results.map((r) => ({
         title: r.title,
@@ -319,7 +328,7 @@ exports.chat = async (req, res) => {
 
     console.table(
       rankedResults.map((r) => ({
-        title: r.title,
+        article: r.title,
         distance: Number(r.embedding_distance).toFixed(3),
         embedding: r.embeddingSimilarity.toFixed(3),
         title: r.titleScore.toFixed(3),
@@ -439,7 +448,31 @@ exports.chat = async (req, res) => {
 
     llmTime = Date.now() - llmStart;
 
-    const answer = aiResponse.answer;
+    let answer = aiResponse.answer;
+
+    // Remove the title if it matches the first retrieved article title
+    if (filteredResults.length > 0) {
+      const articleTitle = filteredResults[0].title.trim();
+
+      // Match plain title or markdown heading versions (#, ##, ###)
+      function escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      }
+
+      const escapedTitle = escapeRegex(articleTitle);
+
+      // Remove title whether it appears as:
+      // How to Reset HMIS Password
+      // # How to Reset HMIS Password
+      // ## How to Reset HMIS Password
+      // ### How to Reset HMIS Password
+      const titleRegex = new RegExp(
+        `^(?:#{1,6}\\s*)?${escapedTitle}\\s*(?:\\r?\\n)+`,
+        "i",
+      );
+
+      answer = answer.replace(titleRegex, "").trim();
+    }
 
     // Did the AI actually answer?
     const answerFound =
@@ -497,22 +530,18 @@ exports.chat = async (req, res) => {
     // SAVE CHAT MESSAGE
     // ===============================
 
-    await prisma.chatMessage.create({
+    const savedMessage = await prisma.chatMessage.create({
       data: {
         question,
-
         answer,
-
         sessionId: session.id,
         responseTime: aiResponse.responseTime,
-
         confidence:
           aiResponse.confidence === "HIGH"
             ? 1
             : aiResponse.confidence === "MEDIUM"
               ? 0.6
               : 0.3,
-
         citations: answerFound
           ? filteredResults.slice(0, 3).map((item) => ({
               articleId: item.articleId,
@@ -555,12 +584,10 @@ exports.chat = async (req, res) => {
     const topResults = filteredResults.slice(0, 3);
 
     return res.json({
-      answer: aiResponse.answer,
-
+      answer,
       confidence: aiResponse.confidence,
-
       responseTime: aiResponse.responseTime,
-
+      messageId: savedMessage.id,
       citations: answerFound
         ? topResults.map((item) => ({
             articleId: item.articleId,
@@ -570,7 +597,6 @@ exports.chat = async (req, res) => {
             distance: Number(item.embedding_distance),
           }))
         : [],
-
       sessionId: session.id,
     });
   } catch (error) {
@@ -622,6 +648,11 @@ exports.addFeedback = async (req, res) => {
   try {
     const { helpful } = req.body;
 
+    console.log("Feedback request:", {
+      messageId: req.params.messageId,
+      helpful,
+    });
+
     const existing = await prisma.chatMessage.findUnique({
       where: {
         id: req.params.messageId,
@@ -642,7 +673,7 @@ exports.addFeedback = async (req, res) => {
         feedback: helpful,
       },
     });
-
+    console.log("Updated message:", message);
     return res.json({
       message: "Feedback saved",
       data: message,

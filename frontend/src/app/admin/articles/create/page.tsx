@@ -28,6 +28,8 @@ import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import axios from 'axios';
+
 import {
   Select,
   SelectContent,
@@ -35,6 +37,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface Category {
   id: string;
@@ -53,11 +58,14 @@ export default function CreateArticle() {
   });
   // In your CreateArticle component, update the editor configuration
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
           levels: [1, 2, 3],
         },
+        link: false,
+        underline: false,
       }),
       UnderlineExtension,
       LinkExtension.configure({
@@ -80,6 +88,12 @@ export default function CreateArticle() {
       },
     },
   });
+
+  useEffect(() => {
+    return () => {
+      editor?.destroy();
+    };
+  }, [editor]);
   const [categories, setCategories] = useState<Category[]>([]);
   /* article types */
   const ARTICLE_TYPES = [
@@ -140,11 +154,16 @@ export default function CreateArticle() {
         tags: '',
         product: 'HMIS',
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      alert(error.response?.data?.message || 'Failed to create article');
-    } finally {
-      setLoading(false);
+
+      if (axios.isAxiosError(error)) {
+        alert(error.response?.data?.message || 'Failed to create article');
+      } else if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Failed to create article');
+      }
     }
   };
 
@@ -159,20 +178,21 @@ export default function CreateArticle() {
           </p>
         </header>
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="outline"
             onClick={() => handleCreate(false)}
             disabled={loading}
-            className="rounded-lg bg-gray-300 px-3 py-1 disabled:opacity-50"
+            className="h-10 rounded-lg px-4"
           >
-            {loading ? 'Saving...' : 'Save as Draft'}
-          </button>
-          <button
+            {loading ? 'Saving...' : 'Save as draft'}
+          </Button>
+          <Button
             onClick={() => handleCreate(true)}
             disabled={loading}
-            className="rounded-lg bg-blue-600 px-3 py-1 text-white disabled:opacity-50"
+            className="h-10 rounded-lg px-4"
           >
-            {loading ? 'Submitting...' : 'Submit for Review'}
-          </button>
+            {loading ? 'Submitting...' : 'Submit for review'}
+          </Button>
         </div>
       </div>
 
@@ -181,11 +201,13 @@ export default function CreateArticle() {
         {/* 1 column */}
         <div className="min-w-0 px-4">
           {/*title */}
-          <div>
-            <label className="mb-2 block font-semibold text-gray-700">Article Title</label>
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-sm font-medium">
+              Article title
+            </Label>
 
-            <input
-              type="text"
+            <Input
+              id="title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({
@@ -193,9 +215,13 @@ export default function CreateArticle() {
                   title: e.target.value,
                 })
               }
-              placeholder="e.g. How to Reset HMIS Password"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-lg shadow-sm transition outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              placeholder="e.g. How to reset HMIS password"
+              className="h-12"
             />
+
+            <p className="text-xs text-gray-500">
+              Use a clear and searchable title for the knowledge base.
+            </p>
           </div>
           {/* Content */}
           <div className="mt-6">
@@ -382,12 +408,17 @@ export default function CreateArticle() {
         </div>
 
         {/* 2 column */}
-        <div className="rounded-2xl border border-gray-200 bg-blue-300 p-3 shadow-sm">
-          <div className="">
+        <div className="border-border rounded-2xl border bg-white p-3 shadow-sm">
+          <div className="mb-3">
             <h1 className="text-lg font-bold">Article Metadata</h1>
+            <p className="text-sm text-gray-500">
+              Organize this article for better search and discovery.
+            </p>
+          </div>
+          <div className="mt-5">
             {/* Category */}
-            <div className="flex flex-col gap-1">
-              <label className="font-medium text-gray-700">Category</label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Category</Label>
 
               <Select
                 value={formData.category}
@@ -403,6 +434,9 @@ export default function CreateArticle() {
                 </SelectTrigger>
 
                 <SelectContent>
+                  <SelectItem value="__placeholder__" disabled>
+                    Select a category
+                  </SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.name}>
                       {category.name}
@@ -413,8 +447,8 @@ export default function CreateArticle() {
             </div>
 
             {/* Product */}
-            <div className="mt-2 flex flex-col gap-1">
-              <label className="font-medium text-gray-700">Product</label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Product</Label>
 
               <Select
                 value={formData.product}
@@ -429,6 +463,9 @@ export default function CreateArticle() {
                   <SelectValue placeholder="Select Product" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__placeholder__" disabled>
+                    Select a product
+                  </SelectItem>
                   {PRODUCTS.map((product) => (
                     <SelectItem key={product} value={product}>
                       {product}
@@ -439,8 +476,8 @@ export default function CreateArticle() {
             </div>
 
             {/* Article Type */}
-            <div className="mt-2 flex flex-col gap-2">
-              <label className="font-medium text-gray-700">Article Type </label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Article type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) =>
@@ -454,6 +491,9 @@ export default function CreateArticle() {
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__placeholder__" disabled>
+                    Select an article type
+                  </SelectItem>
                   {ARTICLE_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
@@ -463,10 +503,13 @@ export default function CreateArticle() {
               </Select>
             </div>
             {/* Tags */}
-            <div className="mt-2 flex flex-col gap-2">
-              <label>Tags</label>
-              <input
-                type="text"
+            <div className="space-y-2">
+              <Label htmlFor="tags" className="text-sm font-medium">
+                Tags
+              </Label>
+
+              <Input
+                id="tags"
                 value={formData.tags}
                 onChange={(e) =>
                   setFormData({
@@ -474,9 +517,28 @@ export default function CreateArticle() {
                     tags: e.target.value,
                   })
                 }
-                placeholder="Enter related Tags"
-                className="rounded-lg border border-gray-500 px-4 py-1 outline-0 focus:border-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g. login, password, hmis, troubleshooting"
+                className="h-11 rounded-xl border-gray-200 focus-visible:ring-2 focus-visible:ring-blue-500"
               />
+
+              <p className="text-xs text-gray-500">Separate multiple tags with commas.</p>
+
+              {formData.tags.trim() && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {formData.tags
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter(Boolean)
+                    .map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                </div>
+              )}
             </div>
             {/* Urgency Level */}
             <div className="mt-4">
