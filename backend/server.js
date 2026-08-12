@@ -41,6 +41,23 @@ app.use("/api/v1/analytics", require("./routes/analyticsRoutes"));
 
 const PORT = process.env.PORT || 5000;
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "HealthTech Knowledge Base & HMIS Chatbot API is running",
+    version: "1.0.0",
+    endpoints: {
+      auth: "/api/v1/auth",
+      articles: "/api/v1/articles",
+      search: "/api/v1/search",
+      chat: "/api/v1/chat",
+      categories: "/api/v1/categories",
+      users: "/api/v1/users",
+      analytics: "/api/v1/analytics",
+    },
+  });
+});
+
 async function startServer() {
   try {
     await connectDatabase();
