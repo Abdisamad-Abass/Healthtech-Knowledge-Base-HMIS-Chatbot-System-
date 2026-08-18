@@ -34,6 +34,11 @@ import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
+
 type Citation = {
   articleId: string;
   title: string;
@@ -310,46 +315,45 @@ export default function ChatBox() {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-[#F8FAFC]">
+    <div className="bg-background flex h-screen w-full">
       {/* Sidebar */}
-      {/* Sidebar */}
-      <div className="fixed top-0 left-0 flex h-screen w-68 flex-col overflow-hidden border-r border-gray-200 bg-[#EAEAF4] shadow-xl">
+      <div className="border-border bg-sidebar fixed top-0 left-0 flex h-screen w-68 flex-col overflow-hidden border-r shadow-xl">
         {/* Logo / Header */}
         <div className="mb-6 flex shrink-0 items-center gap-2 p-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0052CC] shadow-md">
-            <FaBriefcaseMedical className="text-xl text-white" />
+          <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-xl shadow-md">
+            <FaBriefcaseMedical className="text-xl" />
           </div>
 
           <div className="flex flex-col">
-            <h2 className="text-2xl font-bold text-[#0052CC]">HMIS</h2>
+            <h2 className="text-primary text-2xl font-bold">HMIS</h2>
             <p>AI Assistant</p>
           </div>
         </div>
 
         {/* New Chat */}
         <div className="shrink-0 px-6">
-          <button
+          <Button
             onClick={() => {
               setSessionId('');
               setMessages([]);
               setOpenChatMenu(null);
             }}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#003D9B] p-2 text-white hover:bg-blue-500"
+            className="flex w-full items-center justify-center gap-2"
           >
             <Plus />
             New Chat
-          </button>
+          </Button>
         </div>
 
-        <hr className="mt-5 shrink-0 text-slate-400" />
+        <hr className="text-muted-foreground mt-5 shrink-0" />
 
         {/* HISTORY AREA */}
         <div className="mt-5 flex min-h-0 flex-1 flex-col">
           {/* History Title - Fixed */}
           <div className="mb-3 flex shrink-0 items-center gap-2 px-6">
-            <TbHistory className="text-slate-400" />
+            <TbHistory className="text-muted-foreground" />
 
-            <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
+            <p className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
               History
             </p>
           </div>
@@ -360,7 +364,7 @@ export default function ChatBox() {
               <div
                 key={chat.id}
                 className={`relative mb-1 flex items-center rounded-xl ${
-                  sessionId === chat.id ? 'bg-blue-200' : 'hover:bg-blue-100'
+                  sessionId === chat.id ? 'bg-accent' : 'hover:bg-accent'
                 }`}
               >
                 {/* Chat Title */}
@@ -369,7 +373,7 @@ export default function ChatBox() {
                     loadHistory(chat.id);
                     setOpenChatMenu(null);
                   }}
-                  className="min-w-0 flex-1 truncate px-3 py-3 text-left text-sm text-slate-700"
+                  className="text-foreground min-w-0 flex-1 truncate px-3 py-3 text-left text-sm"
                 >
                   {chat.title}
                 </button>
@@ -381,7 +385,7 @@ export default function ChatBox() {
 
                     setOpenChatMenu(openChatMenu === chat.id ? null : chat.id);
                   }}
-                  className="mr-1 shrink-0 rounded-lg p-2 text-slate-500 hover:bg-white hover:text-slate-800"
+                  className="text-muted-foreground hover:bg-card hover:text-foreground mr-1 shrink-0 rounded-lg p-2"
                   aria-label="Chat options"
                 >
                   <Ellipsis size={17} />
@@ -389,10 +393,10 @@ export default function ChatBox() {
 
                 {/* Chat Menu */}
                 {openChatMenu === chat.id && (
-                  <div className="absolute top-10 right-0 z-[100] w-32 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+                  <div className="border-border bg-card absolute top-10 right-0 z-[100] w-32 rounded-xl border p-1 shadow-xl">
                     <button
                       onClick={() => archiveChat(chat.id)}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                      className="hover:bg-muted text-foreground flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm"
                     >
                       <Archive size={16} />
                       Archive
@@ -400,7 +404,7 @@ export default function ChatBox() {
 
                     <button
                       onClick={() => deleteChat(chat.id)}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                      className="text-danger hover:bg-danger-bg flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm"
                     >
                       <Trash2 size={16} />
                       Delete
@@ -413,11 +417,11 @@ export default function ChatBox() {
         </div>
 
         {/* FOOTER - ALWAYS VISIBLE */}
-        <div className="relative shrink-0 border-t border-slate-200 bg-white p-3">
+        <div className="border-border bg-card relative shrink-0 border-t p-3">
           {/* Profile Dropdown */}
           {profileOpen && (
-            <div className="absolute right-3 bottom-20 left-3 z-[200] rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-slate-100">
+            <div className="border-border bg-card absolute right-3 bottom-20 left-3 z-[200] rounded-2xl border p-2 shadow-2xl">
+              <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                 <User size={18} />
                 <span>Profile</span>
               </button>
@@ -427,25 +431,25 @@ export default function ChatBox() {
                   setProfileOpen(false);
                   router.push('/archive');
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100"
+                className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3"
               >
                 <Archive size={18} />
                 <span>Archive</span>
               </button>
 
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-slate-100">
+              <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                 <Settings size={18} />
                 <span>Settings</span>
               </button>
 
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left hover:bg-slate-100">
+              <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                 <CircleQuestionMark size={18} />
                 <span>Support</span>
               </button>
 
               <hr className="my-2" />
 
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-red-600 hover:bg-red-50">
+              <button className="text-danger hover:bg-danger-bg flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left">
                 <LogOut size={18} />
                 <span>Logout</span>
               </button>
@@ -455,9 +459,9 @@ export default function ChatBox() {
           {/* User Profile Button */}
           <button
             onClick={() => setProfileOpen(!profileOpen)}
-            className="flex w-full items-center gap-3 rounded-2xl p-2 transition hover:bg-slate-100"
+            className="hover:bg-muted flex w-full items-center gap-3 rounded-2xl p-2 transition"
           >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+            <div className="bg-primary text-primary-foreground flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-semibold">
               {user?.name
                 ?.split(' ')
                 .map((n) => n[0])
@@ -466,9 +470,9 @@ export default function ChatBox() {
             </div>
 
             <div className="flex min-w-0 flex-1 flex-col text-left">
-              <p className="truncate text-sm font-semibold text-slate-800">{user?.name}</p>
+              <p className="text-foreground truncate text-sm font-semibold">{user?.name}</p>
 
-              <p className="truncate text-xs text-slate-500">{user?.email}</p>
+              <p className="text-muted-foreground truncate text-xs">{user?.email}</p>
             </div>
 
             <ChevronUp
@@ -480,22 +484,22 @@ export default function ChatBox() {
       </div>
 
       {/* Chat Messages */}
-      <div className="ml-68 flex h-full w-full flex-col bg-white shadow-xl">
+      <div className="bg-card ml-68 flex h-full w-full flex-col shadow-xl">
         {/* Header */}
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-8 py-1">
+        <div className="border-border bg-card sticky top-0 z-20 flex items-center justify-between border-b px-8 py-1">
           {/* Left Side */}
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 shadow-md">
-              <Sparkles className="text-white" />
+            <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-2xl shadow-md">
+              <Sparkles className="text-primary-foreground" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-blue-600">HMIS Assistant</h1>
+              <h1 className="text-primary text-2xl font-bold">HMIS Assistant</h1>
               <div className="flex items-center gap-2">
                 <div className="relative h-3 w-3">
-                  <div className="absolute h-3 w-3 animate-ping rounded-full bg-green-400"></div>
-                  <div className="relative h-3 w-3 rounded-full bg-green-500"></div>
+                  <div className="bg-success absolute h-3 w-3 animate-ping rounded-full"></div>
+                  <div className="bg-success relative h-3 w-3 rounded-full"></div>
                 </div>
-                <p className="text-sm text-slate-400">AI Expert Active</p>
+                <p className="text-muted-foreground text-sm">AI Expert Active</p>
               </div>
             </div>
           </div>
@@ -508,8 +512,8 @@ export default function ChatBox() {
               onClick={() => setSearchOpen(!searchOpen)}
               className={`rounded-xl p-3 transition ${
                 searchOpen
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-slate-500 hover:bg-slate-100 hover:text-blue-600'
+                  ? 'bg-accent text-primary'
+                  : 'text-muted-foreground hover:text-primary hover:bg-muted'
               }`}
               title="Search conversation"
             >
@@ -518,14 +522,14 @@ export default function ChatBox() {
 
             <button
               aria-label="Download conversation"
-              className="rounded-xl p-3 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
+              className="text-muted-foreground hover:bg-muted hover:text-primary rounded-xl p-3 transition"
             >
               <Download size={20} />
             </button>
 
             <button
               aria-label="Delete conversation"
-              className="rounded-xl p-3 text-slate-500 transition hover:bg-slate-100 hover:text-red-600"
+              className="text-muted-foreground hover:bg-muted hover:text-danger rounded-xl p-3 transition"
             >
               <Trash2 size={20} />
             </button>
@@ -534,41 +538,41 @@ export default function ChatBox() {
               <button
                 aria-label="More options"
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="rounded-xl p-3 text-slate-500 transition hover:bg-slate-100"
+                className="text-muted-foreground hover:bg-muted rounded-xl p-3 transition"
               >
                 <MoreVertical size={20} />
               </button>
               {/* Dropdown Menu */}
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl">
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                <div className="border-border bg-card absolute right-0 mt-2 w-64 rounded-2xl border p-2 shadow-2xl">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <Copy size={18} />
                     Copy Conversation
                   </button>
 
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <Share2 size={18} />
                     Share Conversation
                   </button>
 
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <Printer size={18} />
                     Print Conversation
                   </button>
 
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <RefreshCw size={18} />
                     Regenerate Response
                   </button>
 
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <BookOpen size={18} />
                     View Sources
                   </button>
 
                   <hr className="my-2" />
 
-                  <button className="flex w-full items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-100">
+                  <button className="hover:bg-muted flex w-full items-center gap-3 rounded-xl px-3 py-3">
                     <Download size={18} />
                     Export Conversation
                   </button>
@@ -579,23 +583,23 @@ export default function ChatBox() {
           {/* Search Bar */}
 
           {searchOpen && (
-            <div className="border-b border-slate-200 bg-slate-50 px-8 py-3">
-              <div className="flex items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 shadow-sm">
-                <Search size={18} className="text-slate-400" />
+            <div className="border-border bg-muted border-b px-8 py-3">
+              <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-3 shadow-sm">
+                <Search size={18} className="text-muted-foreground" />
 
-                <input
+                <Input
                   type="text"
                   placeholder="Search this conversation..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  className="flex-1 bg-transparent outline-none"
+                  className="border-0 bg-transparent shadow-none focus:ring-0 focus-visible:ring-0"
                   autoFocus
                 />
 
                 {searchText && (
                   <button
                     onClick={() => setSearchText('')}
-                    className="text-sm text-slate-500 hover:text-red-500"
+                    className="text-muted-foreground hover:text-danger text-sm"
                   >
                     Clear
                   </button>
@@ -606,7 +610,7 @@ export default function ChatBox() {
                     setSearchOpen(false);
                     setSearchText('');
                   }}
-                  className="text-sm text-blue-600 hover:underline"
+                  className="text-primary text-sm hover:underline"
                 >
                   Close
                 </button>
@@ -621,36 +625,37 @@ export default function ChatBox() {
               <div key={i} className="flex justify-end">
                 <div className="flex flex-col items-end">
                   {/* User Message */}
-                  <div className="max-w-xs rounded-2xl rounded-tr-none bg-blue-600 p-3 text-white shadow">
+                  <div className="bg-primary text-primary-foreground max-w-xs rounded-2xl rounded-tr-none p-3 shadow">
                     {m.text}
                   </div>
 
                   {/* Time */}
-                  <span className="mt-1 mr-2 text-xs text-slate-400">{m.time}</span>
+                  <span className="text-muted-foreground mt-1 mr-2 text-xs">{m.time}</span>
                 </div>
               </div>
             ) : (
               <div key={i} className="flex items-start gap-3">
                 {/* Bot Icon */}
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 shadow-md">
-                  <Bot size={20} className="text-white" />
+                  <Bot size={20} className="text-primary-foreground" />
                 </div>
 
                 {/* Bot Message + Time */}
                 <div className="flex flex-col">
-                  <div className="max-w-3xl rounded-3xl rounded-tl-none border border-slate-200 bg-white p-5 shadow-sm">
-                    <div className="prose prose-slate prose-headings:mt-0 prose-headings:mb-3 prose-p:my-3 prose-li:my-1 prose-strong:text-slate-900 prose-code:text-blue-700 max-w-none">
+                  <div className="border-border bg-card max-w-3xl rounded-3xl rounded-tl-none border p-5 shadow-sm">
+                    <div className="prose prose-slate prose-headings:mt-0 prose-headings:mb-3 prose-p:my-3 prose-li:my-1 prose-strong:text-foreground prose-code:text-primary max-w-none">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                     </div>
 
                     {m.citations && m.citations.length > 0 && (
-                      <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-                        <p className="mb-2 text-xs font-semibold text-slate-500">Sources</p>
+                      <div className="bg-muted mt-4 rounded-2xl p-4">
+                        <p className="text-muted-foreground mb-2 text-xs font-semibold">Sources</p>
                         <div className="space-y-2">
                           {m.citations.map((c) => (
                             <button
                               key={c.articleId}
-                              className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm text-blue-700 hover:bg-blue-50"
+                              onClick={() => router.push(`/viewer/articles/${c.articleId}`)}
+                              className="text-primary hover:bg-accent flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm"
                             >
                               <span className="truncate">{c.title}</span>
                               <ExternalLink size={14} />
@@ -660,31 +665,33 @@ export default function ChatBox() {
                       </div>
                     )}
 
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <div className="text-muted-foreground mt-4 flex flex-wrap items-center gap-3 text-xs">
                       <span>{m.time}</span>
 
                       {m.responseTime && <span>{m.responseTime} ms</span>}
 
                       {m.confidence && (
-                        <span className="rounded-full bg-green-100 px-2 py-1 text-green-700">
+                        <span className="bg-success-bg text-success rounded-full px-2 py-1">
                           {m.confidence}
                         </span>
                       )}
                     </div>
 
                     {m.messageId && (
-                      <div className="mt-4 border-t border-slate-100 pt-4">
+                      <div className="border-border mt-4 border-t pt-4">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-slate-600">Was this response helpful?</p>
+                          <p className="text-muted-foreground text-sm">
+                            Was this response helpful?
+                          </p>
 
                           <div className="flex items-center gap-2">
                             {/* Helpful */}
                             <button
                               onClick={() => submitFeedback(m.messageId!, true, m.id)}
-                              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
+                              className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-all ${
                                 m.feedback === true
-                                  ? 'border border-green-200 bg-green-100 text-green-700'
-                                  : 'border border-transparent text-slate-500 hover:bg-slate-100'
+                                  ? 'bg-success-bg text-success border-success-border'
+                                  : 'text-muted-foreground hover:bg-muted border-transparent'
                               }`}
                             >
                               <ThumbsUp size={16} />
@@ -696,8 +703,8 @@ export default function ChatBox() {
                               onClick={() => submitFeedback(m.messageId!, false, m.id)}
                               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all ${
                                 m.feedback === false
-                                  ? 'border border-red-200 bg-red-100 text-red-700'
-                                  : 'border border-transparent text-slate-500 hover:bg-slate-100'
+                                  ? 'border-danger-border bg-danger-bg text-danger border'
+                                  : 'text-muted-foreground hover:bg-muted border border-transparent'
                               }`}
                             >
                               <ThumbsDown size={16} />
@@ -710,8 +717,8 @@ export default function ChatBox() {
                           <div
                             className={`mt-3 rounded-lg border px-3 py-2 text-xs ${
                               m.feedback
-                                ? 'border-green-100 bg-green-50 text-green-700'
-                                : 'border-red-100 bg-red-50 text-red-700'
+                                ? 'border-success-border bg-success-bg text-success'
+                                : 'border-danger-border bg-danger-bg text-danger'
                             }`}
                           >
                             {m.feedback
@@ -728,12 +735,12 @@ export default function ChatBox() {
           )}
           {isLoading && (
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 shadow-md">
-                <Bot size={20} className="text-white" />
+              <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full shadow-md">
+                <Bot size={20} className="text-primary-foreground" />
               </div>
 
-              <div className="rounded-3xl rounded-tl-none border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                <div className="flex items-center gap-2 text-slate-500">
+              <div className="border-border bg-card rounded-3xl rounded-tl-none border px-5 py-4 shadow-sm">
+                <div className="text-muted-foreground flex items-center gap-2">
                   <Loader2 size={16} className="animate-spin" />
                   <span className="text-sm">Thinking...</span>
                 </div>
@@ -745,22 +752,22 @@ export default function ChatBox() {
 
         {/* Input Box + Send Button */}
         <form onSubmit={send} className="flex w-full items-center gap-3 p-6">
-          <input
+          <Input
             aria-label="Message input"
-            className="w-full rounded-xl border p-3 text-gray-700"
+            className="h-11 flex-1"
             placeholder="Ask HMIS question"
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
 
-          <button
+          <Button
             type="submit"
+            size="icon"
             aria-label="Send message"
-            onClick={send}
-            className="rounded-xl bg-blue-600 p-3 text-white"
+            disabled={!input.trim() || isLoading}
           >
-            <SendHorizontal />
-          </button>
+            <SendHorizontal className="size-5" />
+          </Button>
         </form>
       </div>
     </div>

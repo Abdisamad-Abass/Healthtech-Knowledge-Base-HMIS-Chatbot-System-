@@ -218,13 +218,14 @@ export default function UsersPage() {
       title: 'Active users',
       total: statistics.activeUsers,
       icon: <UserCheck className="h-5 w-5" />,
-      iconClass: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      iconClass: 'bg-success-BG text-status-PUBLISHED dark:bg-green-900/30 dark:text-vital',
     },
     {
       title: 'Inactive users',
       total: statistics.inactiveUsers,
       icon: <UserX className="h-5 w-5" />,
-      iconClass: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+      iconClass:
+        'bg-danger-BG text-status-REJECTED dark:bg-status-DELETED/30 dark:text-status-REJECTED',
     },
     {
       title: 'Administrators',
@@ -503,9 +504,9 @@ export default function UsersPage() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="cursor-pointer hover:bg-red-100 hover:text-red-700"
+                        className="hover:bg-danger-BG hover:text-status-REJECTED cursor-pointer"
                       >
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                        <Trash2 className="text-danger0 h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -558,7 +559,7 @@ export default function UsersPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="cursor-pointer hover:bg-red-100 hover:text-red-700"
+                  className="hover:bg-danger-BG hover:text-status-REJECTED cursor-pointer"
                   onClick={() => setOpenEdit(false)}
                 >
                   <X className="h-5 w-5" />

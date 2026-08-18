@@ -7,73 +7,73 @@ export default function HomePage() {
       <section className="container mx-auto px-6 py-20">
         <div className="grid items-center gap-12 md:grid-cols-2">
           <div>
-            <div className="mb-6 inline-flex items-center rounded-full bg-blue-100 px-5 py-2 font-medium text-blue-700">
+            <div className="bg-accent text-primary mb-6 inline-flex items-center rounded-full px-5 py-2 font-medium">
               🚀 HealthTech AI Platform
             </div>
 
-            <h1 className="text-5xl leading-tight font-extrabold text-gray-900 md:text-6xl">
+            <h1 className="text-foreground text-5xl leading-tight font-extrabold md:text-6xl">
               HealthTech Knowledge Base
-              <span className="text-blue-600"> Assistant</span>
+              <span className="text-primary"> Assistant</span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-600">
+            <p className="text-muted-FOREGROUND mt-6 max-w-xl text-lg leading-relaxed">
               Centralized healthcare documentation platform with AI powered HMIS chatbot support.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href="/login"
-                className="rounded-2xl bg-blue-600 px-8 py-4 font-semibold text-white shadow-lg transition hover:bg-blue-700"
+                className="text-primary-foreground bg-primary hover:bg-primary rounded-2xl px-8 py-4 font-semibold shadow-lg transition"
               >
                 Login
               </Link>
 
               <Link
                 href="/search"
-                className="rounded-2xl border-2 border-blue-600 bg-white px-8 py-4 font-semibold text-blue-600 transition hover:bg-blue-50"
+                className="hover:bg-primary-soft text-primary bg-card rounded-2xl border-2 border-blue-600 px-8 py-4 font-semibold transition"
               >
                 Search Knowledge Base
               </Link>
             </div>
 
             <div className="mt-12 grid grid-cols-3 gap-4">
-              <div className="rounded-2xl bg-white p-4 shadow">
-                <h3 className="text-xl font-bold text-blue-600">AI</h3>
+              <div className="bg-card rounded-2xl p-4 shadow">
+                <h3 className="text-primary text-xl font-bold">AI</h3>
 
-                <p className="text-sm text-gray-500">Assistant</p>
+                <p className="text-card-FOREGROUND0 text-sm">Assistant</p>
               </div>
 
-              <div className="rounded-2xl bg-white p-4 shadow">
-                <h3 className="text-xl font-bold text-green-600">HMIS</h3>
+              <div className="bg-card rounded-2xl p-4 shadow">
+                <h3 className="text-status-PUBLISHED text-xl font-bold">HMIS</h3>
 
-                <p className="text-sm text-gray-500">Support</p>
+                <p className="text-card-FOREGROUND0 text-sm">Support</p>
               </div>
 
-              <div className="rounded-2xl bg-white p-4 shadow">
+              <div className="bg-card rounded-2xl p-4 shadow">
                 <h3 className="text-xl font-bold text-purple-600">KB</h3>
 
-                <p className="text-sm text-gray-500">Search</p>
+                <p className="text-card-FOREGROUND0 text-sm">Search</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white/90 p-10 shadow-2xl backdrop-blur">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-3xl">
+          <div className="bg-card/90 border-border rounded-3xl border p-10 shadow-2xl backdrop-blur">
+            <div className="bg-accent mb-6 flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">
               🏥
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-800">System Features</h2>
+            <h2 className="text-foreground text-3xl font-bold">System Features</h2>
 
-            <ul className="mt-8 space-y-5 text-gray-700">
-              <li className="rounded-xl bg-blue-50 p-4">✅ Role Based Access Control</li>
+            <ul className="text-foreground mt-8 space-y-5">
+              <li className="bg-primary-soft rounded-xl p-4">✅ Role Based Access Control</li>
 
-              <li className="rounded-xl bg-blue-50 p-4">✅ Article Management</li>
+              <li className="bg-primary-soft rounded-xl p-4">✅ Article Management</li>
 
-              <li className="rounded-xl bg-blue-50 p-4">✅ Full Text Search</li>
+              <li className="bg-primary-soft rounded-xl p-4">✅ Full Text Search</li>
 
-              <li className="rounded-xl bg-blue-50 p-4">✅ AI Knowledge Assistant</li>
+              <li className="bg-primary-soft rounded-xl p-4">✅ AI Knowledge Assistant</li>
 
-              <li className="rounded-xl bg-blue-50 p-4">✅ HMIS Embedded Widget</li>
+              <li className="bg-primary-soft rounded-xl p-4">✅ HMIS Embedded Widget</li>
             </ul>
           </div>
         </div>

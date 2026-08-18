@@ -277,14 +277,14 @@ export default function EditorArticles() {
   };
 
   const renderStars = (rating: number | null) => {
-    if (!rating) return <span className="text-xs text-gray-400">No ratings</span>;
+    if (!rating) return <span className="text-muted-FOREGROUND text-xs">No ratings</span>;
     const stars = [];
     const fullStars = Math.floor(rating);
     for (let i = 0; i < 5; i++) {
       stars.push(
         <FiStar
           key={i}
-          className={`h-3.5 w-3.5 ${i < fullStars ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
+          className={`h-3.5 w-3.5 ${i < fullStars ? 'fill-amber-400 text-amber-400' : 'text-muted-FOREGROUND'}`}
         />,
       );
     }
@@ -363,7 +363,9 @@ export default function EditorArticles() {
                     }`}
                   >
                     {tab.label}
-                    <span className={`ml-1.5 ${isActive ? 'text-blue-100' : 'text-gray-400'}`}>
+                    <span
+                      className={`ml-1.5 ${isActive ? 'text-accent-FOREGROUND' : 'text-muted-FOREGROUND'}`}
+                    >
                       ({count})
                     </span>
                   </button>

@@ -173,7 +173,7 @@ export default function CreateArticle() {
       <div className="flex items-center justify-between">
         <header>
           <h1 className="text-xl font-bold">Create New Article</h1>
-          <p className="text-sm text-gray-400">
+          <p className="text-muted-FOREGROUND text-sm">
             Populate the knowledge base with fresh insights and documentation.
           </p>
         </header>
@@ -219,15 +219,15 @@ export default function CreateArticle() {
               className="h-12"
             />
 
-            <p className="text-xs text-gray-500">
+            <p className="text-card-FOREGROUND0 text-xs">
               Use a clear and searchable title for the knowledge base.
             </p>
           </div>
           {/* Content */}
           <div className="mt-6">
-            <label className="mb-2 block font-semibold text-gray-700">Article Content</label>
+            <label className="text-foreground mb-2 block font-semibold">Article Content</label>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div className="bg-card border-border overflow-hidden rounded-2xl border shadow-sm">
               {/* Toolbar */}
               <div className="flex flex-wrap items-center gap-2 border-b bg-gradient-to-r from-slate-50 to-blue-50 p-3">
                 <button onClick={() => editor?.chain().focus().undo().run()}>
@@ -238,12 +238,14 @@ export default function CreateArticle() {
                   <Redo2 size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 <button
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   className={`rounded-lg p-2 ${
-                    editor?.isActive('bold') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('bold')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Bold size={18} />
@@ -252,7 +254,9 @@ export default function CreateArticle() {
                 <button
                   onClick={() => editor?.chain().focus().toggleItalic().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('italic') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('italic')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Italic size={18} />
@@ -261,20 +265,22 @@ export default function CreateArticle() {
                 <button
                   onClick={() => editor?.chain().focus().toggleUnderline().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('underline') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('underline')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Underline size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 <button
                   onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive('heading', { level: 1 })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Heading1 size={18} />
@@ -284,19 +290,21 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive('heading', { level: 2 })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Heading2 size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 <button
                   onClick={() => editor?.chain().focus().toggleBulletList().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('bulletList') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('bulletList')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <List size={18} />
@@ -305,7 +313,9 @@ export default function CreateArticle() {
                 <button
                   onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('orderedList') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('orderedList')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <ListOrdered size={18} />
@@ -314,20 +324,22 @@ export default function CreateArticle() {
                 <button
                   onClick={() => editor?.chain().focus().toggleBlockquote().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('blockquote') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('blockquote')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <Quote size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 <button
                   onClick={() => editor?.chain().focus().setTextAlign('left').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'left' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <AlignLeft size={18} />
@@ -337,8 +349,8 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().setTextAlign('center').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'center' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <AlignCenter size={18} />
@@ -348,18 +360,20 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().setTextAlign('right').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'right' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <AlignRight size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 <button
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('link') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('link')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   onClick={() => {
                     if (!editor) return;
@@ -384,7 +398,9 @@ export default function CreateArticle() {
 
                 <button
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('image') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('image')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   onClick={() => {
                     const url = window.prompt('Image URL');
@@ -408,10 +424,10 @@ export default function CreateArticle() {
         </div>
 
         {/* 2 column */}
-        <div className="border-border rounded-2xl border bg-white p-3 shadow-sm">
+        <div className="border-border bg-card rounded-2xl border p-3 shadow-sm">
           <div className="mb-3">
             <h1 className="text-lg font-bold">Article Metadata</h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-card-FOREGROUND0 text-sm">
               Organize this article for better search and discovery.
             </p>
           </div>
@@ -429,7 +445,7 @@ export default function CreateArticle() {
                   })
                 }
               >
-                <SelectTrigger className="h-11 w-full rounded-xl border-gray-200 shadow-none">
+                <SelectTrigger className="border-border h-11 w-full rounded-xl shadow-none">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
 
@@ -518,10 +534,10 @@ export default function CreateArticle() {
                   })
                 }
                 placeholder="e.g. login, password, hmis, troubleshooting"
-                className="h-11 rounded-xl border-gray-200 focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="border-border h-11 rounded-xl focus-visible:ring-2 focus-visible:ring-blue-500"
               />
 
-              <p className="text-xs text-gray-500">Separate multiple tags with commas.</p>
+              <p className="text-card-FOREGROUND0 text-xs">Separate multiple tags with commas.</p>
 
               {formData.tags.trim() && (
                 <div className="flex flex-wrap gap-2 pt-1">
@@ -532,7 +548,7 @@ export default function CreateArticle() {
                     .map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+                        className="bg-primary-soft text-primary rounded-full px-3 py-1 text-xs font-medium"
                       >
                         #{tag}
                       </span>
@@ -542,37 +558,37 @@ export default function CreateArticle() {
             </div>
             {/* Urgency Level */}
             <div className="mt-4">
-              <label className="mb-2 block font-semibold text-gray-700">Urgency</label>
+              <label className="text-foreground mb-2 block font-semibold">Urgency</label>
 
               <div className="flex items-center gap-2">
-                <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-gray-500 bg-gray-300 p-1.5 transition hover:border-blue-500 hover:bg-blue-50">
+                <label className="hover:bg-primary-soft bg-accent border-border0 flex cursor-pointer items-center gap-1 rounded-lg border p-1.5 transition hover:border-blue-500">
                   <input
                     type="radio"
                     name="urgency"
                     value="LOW"
                     className="h-4 w-4 accent-green-600"
                   />
-                  <span className="font-medium text-gray-700">Low</span>
+                  <span className="text-foreground font-medium">Low</span>
                 </label>
 
-                <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-blue-400 bg-blue-100 p-1.5 transition hover:border-blue-500 hover:bg-blue-50">
+                <label className="hover:bg-primary-soft bg-accent flex cursor-pointer items-center gap-1 rounded-lg border border-blue-400 p-1.5 transition hover:border-blue-500">
                   <input
                     type="radio"
                     name="urgency"
                     value="MEDIUM"
                     className="h-4 w-4 accent-yellow-500"
                   />
-                  <span className="font-medium text-gray-700">Medium</span>
+                  <span className="text-foreground font-medium">Medium</span>
                 </label>
 
-                <label className="flex cursor-pointer items-center gap-1 rounded-lg border border-red-300 bg-red-100 p-1.5 transition hover:border-blue-500 hover:bg-blue-50">
+                <label className="hover:bg-primary-soft bg-danger-BG border-status-rejected-border flex cursor-pointer items-center gap-1 rounded-lg border p-1.5 transition hover:border-blue-500">
                   <input
                     type="radio"
                     name="urgency"
                     value="HIGH"
                     className="h-4 w-4 accent-red-600"
                   />
-                  <span className="font-medium text-gray-700">High</span>
+                  <span className="text-foreground font-medium">High</span>
                 </label>
               </div>
             </div>

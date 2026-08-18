@@ -335,7 +335,7 @@ export default function Dashboard() {
             <Link href="/editor/articles/new" className="w-full">
               <Button
                 variant="outline"
-                className="bg-card text-primary hover:bg-card/90 w-full border-white/10"
+                className="bg-card text-primary hover:bg-card/90 border-border/10 w-full"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Create new article

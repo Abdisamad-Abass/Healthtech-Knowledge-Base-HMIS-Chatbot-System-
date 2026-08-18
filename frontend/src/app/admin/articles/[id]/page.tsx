@@ -281,7 +281,7 @@ export default function ViewArticle() {
             {/* Reject */}
             <Button
               onClick={handleReject}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300"
+              className="bg-danger-BG hover:bg-danger-BG dark:text-status-REJECTED text-status-REJECTED border-danger-BORDER dark:border-status-deleted-border/40 inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition dark:bg-red-950/30"
             >
               Reject
             </Button>
@@ -472,7 +472,7 @@ export default function ViewArticle() {
                       className={`h-8 w-8 ${
                         star <= rating
                           ? 'fill-yellow-400 text-yellow-400'
-                          : 'fill-slate-200 text-slate-200'
+                          : 'text-muted-FOREGROUND fill-slate-200'
                       }`}
                       viewBox="0 0 20 20"
                     >

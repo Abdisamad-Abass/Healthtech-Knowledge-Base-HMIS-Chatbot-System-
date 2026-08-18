@@ -324,7 +324,7 @@ export default function CreateArticle() {
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().undo().run()}
-                  className="rounded-lg p-2 transition hover:bg-gray-200"
+                  className="hover:bg-secondary rounded-lg p-2 transition"
                   title="Undo"
                 >
                   <Undo2 size={18} />
@@ -334,20 +334,22 @@ export default function CreateArticle() {
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().redo().run()}
-                  className="rounded-lg p-2 transition hover:bg-gray-200"
+                  className="hover:bg-secondary rounded-lg p-2 transition"
                   title="Redo"
                 >
                   <Redo2 size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 {/* BOLD */}
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('bold') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('bold')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Bold"
                 >
@@ -359,7 +361,9 @@ export default function CreateArticle() {
                   type="button"
                   onClick={() => editor?.chain().focus().toggleItalic().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('italic') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('italic')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Italic"
                 >
@@ -371,14 +375,16 @@ export default function CreateArticle() {
                   type="button"
                   onClick={() => editor?.chain().focus().toggleUnderline().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('underline') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('underline')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Underline"
                 >
                   <Underline size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 {/* HEADING 1 */}
                 <button
@@ -386,8 +392,8 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive('heading', { level: 1 })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Heading 1"
                 >
@@ -400,22 +406,24 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive('heading', { level: 2 })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Heading 2"
                 >
                   <Heading2 size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 {/* BULLET LIST */}
                 <button
                   type="button"
                   onClick={() => editor?.chain().focus().toggleBulletList().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('bulletList') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('bulletList')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Bullet List"
                 >
@@ -427,7 +435,9 @@ export default function CreateArticle() {
                   type="button"
                   onClick={() => editor?.chain().focus().toggleOrderedList().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('orderedList') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('orderedList')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Numbered List"
                 >
@@ -439,14 +449,16 @@ export default function CreateArticle() {
                   type="button"
                   onClick={() => editor?.chain().focus().toggleBlockquote().run()}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('blockquote') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('blockquote')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Quote"
                 >
                   <Quote size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 {/* ALIGN LEFT */}
                 <button
@@ -454,8 +466,8 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().setTextAlign('left').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'left' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Align Left"
                 >
@@ -468,8 +480,8 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().setTextAlign('center').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'center' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Align Center"
                 >
@@ -482,22 +494,24 @@ export default function CreateArticle() {
                   onClick={() => editor?.chain().focus().setTextAlign('right').run()}
                   className={`rounded-lg p-2 transition ${
                     editor?.isActive({ textAlign: 'right' })
-                      ? 'bg-blue-600 text-white'
-                      : 'hover:bg-blue-100'
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Align Right"
                 >
                   <AlignRight size={18} />
                 </button>
 
-                <div className="mx-1 h-6 w-px bg-gray-300" />
+                <div className="bg-accent mx-1 h-6 w-px" />
 
                 {/* LINK */}
                 <button
                   type="button"
                   onClick={addLink}
                   className={`rounded-lg p-2 transition ${
-                    editor?.isActive('link') ? 'bg-blue-600 text-white' : 'hover:bg-blue-100'
+                    editor?.isActive('link')
+                      ? 'text-primary-foreground bg-primary'
+                      : 'hover:bg-accent'
                   }`}
                   title="Add Link"
                 >
@@ -508,7 +522,7 @@ export default function CreateArticle() {
                 <button
                   type="button"
                   onClick={addImage}
-                  className="rounded-lg p-2 transition hover:bg-blue-100"
+                  className="hover:bg-accent rounded-lg p-2 transition"
                   title="Add Image"
                 >
                   <ImagePlus size={18} />
@@ -541,7 +555,7 @@ export default function CreateArticle() {
                 value={formData.category}
                 onValueChange={(value) => updateField('category', value ?? '')}
               >
-                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                <SelectTrigger className="border-border h-11 w-full rounded-xl">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
 
@@ -563,7 +577,7 @@ export default function CreateArticle() {
                 value={formData.product}
                 onValueChange={(value) => updateField('product', value ?? 'HMIS')}
               >
-                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                <SelectTrigger className="border-border h-11 w-full rounded-xl">
                   <SelectValue placeholder="Select product" />
                 </SelectTrigger>
 
@@ -585,7 +599,7 @@ export default function CreateArticle() {
                 value={formData.type}
                 onValueChange={(value) => updateField('type', value ?? 'FAQ')}
               >
-                <SelectTrigger className="h-11 w-full rounded-xl border-gray-300">
+                <SelectTrigger className="border-border h-11 w-full rounded-xl">
                   <SelectValue placeholder="Select article type" />
                 </SelectTrigger>
 

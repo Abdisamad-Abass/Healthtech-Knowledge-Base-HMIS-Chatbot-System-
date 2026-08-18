@@ -83,7 +83,7 @@ export default function AdminProfilePage() {
           <div className="-mt-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               {/* Avatar */}
-              <div className="bg-primary text-primary-foreground flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border-4 border-white text-2xl font-bold shadow-lg">
+              <div className="bg-primary text-primary-foreground border-border flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border-4 text-2xl font-bold shadow-lg">
                 {initials}
               </div>
 
@@ -141,7 +141,7 @@ export default function AdminProfilePage() {
                 icon={<CheckCircle2 size={17} />}
                 label="Account Status"
                 value="Active"
-                valueClass="text-green-600"
+                valueClass="text-status-PUBLISHED"
               />
               <InfoItem
                 icon={<CalendarDays size={17} />}
@@ -322,29 +322,29 @@ function ProfileSkeleton() {
   return (
     <main className="mx-auto w-full max-w-6xl animate-pulse">
       <div className="mb-8">
-        <div className="h-4 w-32 rounded bg-gray-200" />
-        <div className="mt-3 h-9 w-48 rounded bg-gray-200" />
-        <div className="mt-3 h-4 w-96 max-w-full rounded bg-gray-200" />
+        <div className="bg-secondary h-4 w-32 rounded" />
+        <div className="bg-secondary mt-3 h-9 w-48 rounded" />
+        <div className="bg-secondary mt-3 h-4 w-96 max-w-full rounded" />
       </div>
-      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
-        <div className="h-32 bg-gray-200" />
+      <div className="bg-card border-border overflow-hidden rounded-3xl border">
+        <div className="bg-secondary h-32" />
 
         <div className="p-6">
           <div className="-mt-12 flex items-end gap-4">
-            <div className="h-24 w-24 rounded-3xl bg-gray-300" />
+            <div className="bg-accent h-24 w-24 rounded-3xl" />
 
             <div>
-              <div className="h-7 w-48 rounded bg-gray-200" />
-              <div className="mt-2 h-4 w-64 rounded bg-gray-200" />
+              <div className="bg-secondary h-7 w-48 rounded" />
+              <div className="bg-secondary mt-2 h-4 w-64 rounded" />
             </div>
           </div>
         </div>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="h-64 rounded-2xl bg-gray-200 xl:col-span-2" />
-        <div className="h-64 rounded-2xl bg-gray-200" />
-        <div className="h-48 rounded-2xl bg-gray-200 xl:col-span-2" />
-        <div className="h-48 rounded-2xl bg-gray-200" />
+        <div className="bg-secondary h-64 rounded-2xl xl:col-span-2" />
+        <div className="bg-secondary h-64 rounded-2xl" />
+        <div className="bg-secondary h-48 rounded-2xl xl:col-span-2" />
+        <div className="bg-secondary h-48 rounded-2xl" />
       </div>
     </main>
   );

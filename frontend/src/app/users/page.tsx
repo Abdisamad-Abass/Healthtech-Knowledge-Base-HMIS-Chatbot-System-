@@ -11,12 +11,12 @@ export default function Users() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-blue-50 p-10">
+    <div className="bg-primary-soft min-h-screen p-10">
       <h1 className="text-4xl font-bold">Users Management</h1>
 
       <div className="mt-10 grid gap-5 md:grid-cols-3">
         {users.map((u) => (
-          <div key={u.id} className="rounded-xl bg-white p-6 shadow">
+          <div key={u.id} className="bg-card rounded-xl p-6 shadow">
             <h2 className="font-bold">{u.name}</h2>
 
             <p>{u.email}</p>

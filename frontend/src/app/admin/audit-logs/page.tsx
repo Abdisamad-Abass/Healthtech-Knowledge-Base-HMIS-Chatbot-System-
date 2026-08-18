@@ -339,10 +339,10 @@ export default function AuditLogs() {
 
   const renderStatistics = () => {
     const stats = [
-      { label: 'Total Logs', value: statistics.totalLogs, color: 'bg-blue-500' },
-      { label: 'Created', value: statistics.created, color: 'bg-green-500' },
-      { label: 'Updated', value: statistics.updated, color: 'bg-blue-400' },
-      { label: 'Deleted', value: statistics.deleted, color: 'bg-red-500' },
+      { label: 'Total Logs', value: statistics.totalLogs, color: 'bg-primary-soft' },
+      { label: 'Created', value: statistics.created, color: 'bg-success-BG0' },
+      { label: 'Updated', value: statistics.updated, color: 'bg-info' },
+      { label: 'Deleted', value: statistics.deleted, color: 'bg-danger-BG0' },
       { label: 'Searches', value: statistics.searches, color: 'bg-indigo-500' },
       { label: 'No Results', value: statistics.noResultSearches, color: 'bg-orange-500' },
       { label: 'Chatbot Questions', value: statistics.chatbotQuestions, color: 'bg-cyan-500' },
@@ -428,7 +428,7 @@ export default function AuditLogs() {
           {/* Date Range */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+              <Calendar className="text-muted-FOREGROUND absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 type="date"
                 value={startDate}
@@ -438,7 +438,7 @@ export default function AuditLogs() {
             </div>
             <span className="text-muted-foreground">to</span>
             <div className="relative">
-              <Calendar className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+              <Calendar className="text-muted-FOREGROUND absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
               <Input
                 type="date"
                 value={endDate}
@@ -469,15 +469,15 @@ export default function AuditLogs() {
       return (
         <div className="py-12 text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading audit logs...</p>
+          <p className="text-muted-FOREGROUND mt-4">Loading audit logs...</p>
         </div>
       );
     }
 
     if (logs.length === 0) {
       return (
-        <div className="rounded-lg border border-gray-200 bg-white py-12 text-center shadow">
-          <p className="text-gray-600">No audit logs found</p>
+        <div className="bg-card border-border rounded-lg border py-12 text-center shadow">
+          <p className="text-muted-FOREGROUND">No audit logs found</p>
         </div>
       );
     }
@@ -590,8 +590,8 @@ export default function AuditLogs() {
                 {action === 'SEARCH_AUTOCOMPLETE' ? 'Autocomplete Query' : 'Exact Search Query'}
               </h4>
 
-              <div className="rounded-md border border-indigo-200 bg-white p-4">
-                <p className="text-lg font-semibold break-words text-gray-900">
+              <div className="bg-card rounded-md border border-indigo-200 p-4">
+                <p className="text-foreground text-lg font-semibold break-words">
                   "{details?.query || 'N/A'}"
                 </p>
               </div>
@@ -599,13 +599,13 @@ export default function AuditLogs() {
 
             {/* Search metadata */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">Search Type</p>
+              <div className="bg-background border-border rounded-lg border p-4">
+                <p className="text-card-FOREGROUND0 text-xs">Search Type</p>
                 <p className="font-medium">{details?.searchType || 'N/A'}</p>
               </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">
+              <div className="bg-background border-border rounded-lg border p-4">
+                <p className="text-card-FOREGROUND0 text-xs">
                   {action === 'SEARCH_AUTOCOMPLETE' ? 'Suggestions Returned' : 'Results Found'}
                 </p>
 
@@ -615,15 +615,15 @@ export default function AuditLogs() {
               </div>
 
               {details?.totalResults !== undefined && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs text-gray-500">Total Results</p>
+                <div className="bg-background border-border rounded-lg border p-4">
+                  <p className="text-card-FOREGROUND0 text-xs">Total Results</p>
                   <p className="font-medium">{details.totalResults}</p>
                 </div>
               )}
 
               {details?.page !== undefined && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                  <p className="text-xs text-gray-500">Page</p>
+                <div className="bg-background border-border rounded-lg border p-4">
+                  <p className="text-card-FOREGROUND0 text-xs">Page</p>
                   <p className="font-medium">{details.page}</p>
                 </div>
               )}
@@ -631,22 +631,22 @@ export default function AuditLogs() {
 
             {/* Search filters */}
             {details?.filters && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 font-medium text-gray-700">Search Filters</h4>
+              <div className="bg-background border-border rounded-lg border p-4">
+                <h4 className="text-foreground mb-3 font-medium">Search Filters</h4>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-500">Category</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Category</p>
                     <p className="font-medium">{details.filters.category || 'All'}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Type</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Type</p>
                     <p className="font-medium">{details.filters.type || 'All'}</p>
                   </div>
 
                   <div>
-                    <p className="text-xs text-gray-500">Product</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Product</p>
                     <p className="font-medium">{details.filters.product || 'All'}</p>
                   </div>
                 </div>
@@ -672,19 +672,19 @@ export default function AuditLogs() {
               <h4 className="text-success mb-3 font-medium">Created User</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-500">Name</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Name</p>
                   <p className="font-medium">{details.createdUser?.name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Email</p>
                   <p className="font-medium">{details.createdUser?.email || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Role</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Role</p>
                   <p className="font-medium">{details.createdUser?.role || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Department</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Department</p>
                   <p className="font-medium">{details.createdUser?.department || 'N/A'}</p>
                 </div>
               </div>
@@ -700,41 +700,41 @@ export default function AuditLogs() {
               <h4 className="text-danger mb-3 font-medium">Deleted User</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-500">Name</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Name</p>
                   <p className="font-medium">{details.deletedUser?.name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Email</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Email</p>
                   <p className="font-medium">{details.deletedUser?.email || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Role</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Role</p>
                   <p className="font-medium">{details.deletedUser?.role || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Department</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Department</p>
                   <p className="font-medium">{details.deletedUser?.department || 'N/A'}</p>
                 </div>
               </div>
             </div>
             {details.deletedBy && (
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <h4 className="mb-3 font-medium text-gray-800">Deleted By</h4>
+              <div className="bg-background border-border rounded-lg border p-4">
+                <h4 className="text-foreground mb-3 font-medium">Deleted By</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-500">Name</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Name</p>
                     <p className="font-medium">{details.deletedBy.name || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Email</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Email</p>
                     <p className="font-medium">{details.deletedBy.email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Role</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Role</p>
                     <p className="font-medium">{details.deletedBy.role || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Department</p>
+                    <p className="text-card-FOREGROUND0 text-xs">Department</p>
                     <p className="font-medium">{details.deletedBy.department || 'N/A'}</p>
                   </div>
                 </div>
@@ -751,11 +751,11 @@ export default function AuditLogs() {
               <h4 className="text-warning mb-3 font-medium">Role Change</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-xs text-gray-500">Old Role</p>
+                  <p className="text-card-FOREGROUND0 text-xs">Old Role</p>
                   <p className="font-medium">{details.oldRole || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">New Role</p>
+                  <p className="text-card-FOREGROUND0 text-xs">New Role</p>
                   <p className="font-medium text-yellow-700">{details.newRole || 'N/A'}</p>
                 </div>
               </div>
@@ -775,7 +775,7 @@ export default function AuditLogs() {
                 Status Change
               </h4>
               <div>
-                <p className="text-xs text-gray-500">Status</p>
+                <p className="text-card-FOREGROUND0 text-xs">Status</p>
                 <p className={`font-medium ${isActive ? 'text-success' : 'text-muted-foreground'}`}>
                   {isActive ? 'Active' : 'Inactive'}
                 </p>
@@ -791,21 +791,21 @@ export default function AuditLogs() {
             <div className="rounded-lg border border-cyan-200 bg-cyan-50 p-5">
               <h4 className="mb-3 font-medium text-cyan-800">Exact Question Asked</h4>
 
-              <div className="rounded-md border border-cyan-200 bg-white p-4">
-                <p className="text-lg leading-relaxed font-medium text-gray-900">
+              <div className="bg-card rounded-md border border-cyan-200 p-4">
+                <p className="text-foreground text-lg leading-relaxed font-medium">
                   "{details?.question || 'N/A'}"
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">Confidence</p>
+              <div className="bg-background border-border rounded-lg border p-4">
+                <p className="text-card-FOREGROUND0 text-xs">Confidence</p>
                 <p className="font-medium">{details?.confidence || 'N/A'}</p>
               </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                <p className="text-xs text-gray-500">Session ID</p>
+              <div className="bg-background border-border rounded-lg border p-4">
+                <p className="text-card-FOREGROUND0 text-xs">Session ID</p>
                 <p className="font-medium break-all">{selectedLog.entityId || 'N/A'}</p>
               </div>
             </div>
@@ -815,15 +815,17 @@ export default function AuditLogs() {
       // SEARCH HISTORY CLEARED
       if (action === 'SEARCH_HISTORY_CLEARED') {
         return (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-5">
-            <h4 className="mb-3 font-medium text-red-800">Search History Cleared</h4>
+          <div className="bg-danger-BG border-danger-BORDER rounded-lg border p-5">
+            <h4 className="text-status-DELETED mb-3 font-medium">Search History Cleared</h4>
 
             <p className="text-foreground">The user cleared their search history.</p>
 
             <div className="mt-4">
               <p className="text-muted-foreground text-xs">Search Records Deleted</p>
 
-              <p className="text-2xl font-bold text-red-700">{details?.totalDeleted ?? 0}</p>
+              <p className="text-status-REJECTED text-2xl font-bold">
+                {details?.totalDeleted ?? 0}
+              </p>
             </div>
           </div>
         );
@@ -859,7 +861,7 @@ export default function AuditLogs() {
                 </div>
               </div>
 
-              <div className="border-border rounded-lg border bg-blue-50 p-4">
+              <div className="border-border bg-primary-soft rounded-lg border p-4">
                 <h4 className="text-primary mb-3 font-medium">After</h4>
                 <div className="space-y-2">
                   <div>

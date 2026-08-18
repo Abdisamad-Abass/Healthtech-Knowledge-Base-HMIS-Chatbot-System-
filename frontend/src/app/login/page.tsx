@@ -135,28 +135,28 @@ export default function Login() {
             {/*content */}
             <div className="from-primary/90 via-primary absolute inset-0 bg-gradient-to-br to-[#0b3fd6]">
               <div className="relative flex h-full flex-col justify-center px-14">
-                <div className="mb-8 inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white backdrop-blur">
+                <div className="text-primary-foreground bg-card/10 border-border/20 mb-8 inline-flex w-fit items-center rounded-full border px-4 py-2 text-sm backdrop-blur">
                   Clinical AI Knowledge Platform
                 </div>
 
-                <h1 className="max-w-lg text-5xl leading-tight font-bold text-white">
+                <h1 className="text-primary-foreground max-w-lg text-5xl leading-tight font-bold">
                   Intelligence in every interaction.
                 </h1>
 
-                <p className="mt-5 max-w-md text-lg text-white/90">
+                <p className="text-primary-foreground/90 mt-5 max-w-md text-lg">
                   Secure access to your HealthTech knowledge base with AI-assisted search, verified
                   clinical content, and enterprise-grade protection.
                 </p>
 
                 <div className="mt-10 grid grid-cols-2 gap-6">
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                    <p className="text-3xl font-bold text-white">99.9%</p>
-                    <p className="mt-1 text-sm text-white/80">Knowledge accuracy</p>
+                  <div className="bg-card/10 border-border/15 rounded-2xl border p-5 backdrop-blur">
+                    <p className="text-primary-foreground text-3xl font-bold">99.9%</p>
+                    <p className="text-primary-foreground/80 mt-1 text-sm">Knowledge accuracy</p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
-                    <p className="text-3xl font-bold text-white">256-bit</p>
-                    <p className="mt-1 text-sm text-white/80">End-to-end encryption</p>
+                  <div className="bg-card/10 border-border/15 rounded-2xl border p-5 backdrop-blur">
+                    <p className="text-primary-foreground text-3xl font-bold">256-bit</p>
+                    <p className="text-primary-foreground/80 mt-1 text-sm">End-to-end encryption</p>
                   </div>
                 </div>
               </div>
@@ -189,7 +189,7 @@ export default function Login() {
                   onClick={() => setIsLogin(true)}
                   className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
                     isLogin
-                      ? 'bg-primary text-white shadow-sm'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground bg-transparent'
                   }`}
                 >
@@ -202,7 +202,7 @@ export default function Login() {
                   onClick={() => setIsLogin(false)}
                   className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
                     !isLogin
-                      ? 'bg-primary text-white shadow-sm'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground bg-transparent'
                   }`}
                 >
@@ -212,8 +212,8 @@ export default function Login() {
               {/* Name (Register only) */}
               {!isLogin && (
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-500">
-                    Full Name <span className="text-red-500">*</span>
+                  <Label htmlFor="name" className="text-card-FOREGROUND0">
+                    Full Name <span className="text-danger0">*</span>
                   </Label>
 
                   <Input
@@ -229,8 +229,8 @@ export default function Login() {
               )}
               {/* Email*/}
               <div className="mt-2 space-y-2">
-                <Label htmlFor="email" className="text-gray-500">
-                  Email Address <span className="text-red-500">*</span>
+                <Label htmlFor="email" className="text-card-FOREGROUND0">
+                  Email Address <span className="text-danger0">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -245,8 +245,8 @@ export default function Login() {
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-500">
-                  Password <span className="text-red-500">*</span>
+                <Label htmlFor="password" className="text-card-FOREGROUND0">
+                  Password <span className="text-danger0">*</span>
                 </Label>
 
                 <div className="relative">
@@ -263,7 +263,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 transition hover:text-[#003C90]"
+                    className="text-card-FOREGROUND0 absolute top-1/2 right-3 -translate-y-1/2 transition hover:text-[#003C90]"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}

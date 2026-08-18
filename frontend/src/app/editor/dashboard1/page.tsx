@@ -193,7 +193,7 @@ export default function EditorDashboard() {
         <FiStar
           key={i}
           className={`h-3.5 w-3.5 ${
-            i < fullStars ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
+            i < fullStars ? 'fill-amber-400 text-amber-400' : 'text-muted-FOREGROUND'
           }`}
         />,
       );
@@ -212,10 +212,10 @@ export default function EditorDashboard() {
           {/* Spinner animation */}
           <div className="h-16 w-16 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-blue-600"></div>
+            <div className="bg-primary h-8 w-8 animate-pulse rounded-full"></div>
           </div>
         </div>
-        <p className="mt-6 font-medium text-gray-500">Loading your dashboard...</p>
+        <p className="text-card-FOREGROUND0 mt-6 font-medium">Loading your dashboard...</p>
       </div>
     );
   }
@@ -231,11 +231,11 @@ export default function EditorDashboard() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-rose-50">
             <FiAlertCircle className="h-8 w-8 text-rose-500" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Oops! Something went wrong</h3>
-          <p className="text-gray-500">{error}</p>
+          <h3 className="text-foreground mb-2 text-lg font-semibold">Oops! Something went wrong</h3>
+          <p className="text-card-FOREGROUND0">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-blue-600 px-6 py-2 text-white transition hover:bg-blue-700"
+            className="text-primary-foreground bg-primary hover:bg-primary mt-4 rounded-lg px-6 py-2 transition"
           >
             Try Again
           </button>
@@ -299,14 +299,14 @@ export default function EditorDashboard() {
           <div>
             {/* Editor avatar and greeting */}
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-xl font-bold text-white shadow-lg">
+              <div className="text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 text-xl font-bold shadow-lg">
                 {getInitials(getEditorName())}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-foreground text-2xl font-bold">
                   {getGreeting()}, {getEditorName()} 👋
                 </h1>
-                <p className="mt-0.5 text-sm text-gray-500">
+                <p className="text-card-FOREGROUND0 mt-0.5 text-sm">
                   {dashboard.editor?.email || 'Editor'} • {dashboard.editor?.role || 'Editor'}
                 </p>
               </div>
@@ -316,7 +316,7 @@ export default function EditorDashboard() {
           {/* Create Article button */}
           <button
             onClick={() => router.push('/editor/articles/new')}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-white transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+            className="text-primary-foreground flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
           >
             <FiPlus className="h-4 w-4" />
             <span className="font-medium">New Article</span>
@@ -330,7 +330,7 @@ export default function EditorDashboard() {
           {statsCards.map((stat, index) => {
             const Icon = stat.icon;
             const colorClasses = {
-              blue: 'bg-blue-50 text-blue-600',
+              blue: 'b text-primary',
               emerald: 'bg-emerald-50 text-emerald-600',
               amber: 'bg-amber-50 text-amber-600',
               purple: 'bg-purple-50 text-purple-600',
@@ -338,12 +338,12 @@ export default function EditorDashboard() {
             return (
               <div
                 key={index}
-                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md"
+                className="bg-card border-border rounded-2xl border p-5 shadow-sm transition hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                    <p className="mt-1 text-2xl font-bold text-gray-800">{stat.value}</p>
+                    <p className="text-card-FOREGROUND0 text-sm font-medium">{stat.label}</p>
+                    <p className="text-foreground mt-1 text-2xl font-bold">{stat.value}</p>
                   </div>
                   <div
                     className={`flex h-10 w-10 items-center justify-center rounded-xl ${
@@ -353,7 +353,7 @@ export default function EditorDashboard() {
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
-                <div className="mt-3 text-xs text-gray-500">{stat.subtext}</div>
+                <div className="text-card-FOREGROUND0 mt-3 text-xs">{stat.subtext}</div>
               </div>
             );
           })}
@@ -362,18 +362,18 @@ export default function EditorDashboard() {
         {/* ==========================================================
             FEEDBACK SECTION
             ========================================================== */}
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div className="bg-card border-border overflow-hidden rounded-2xl border shadow-sm">
           {/* Feedback header */}
-          <div className="border-b border-gray-100 px-6 py-4">
+          <div className="border-border border-b px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800">Recent Feedback</h2>
-                <p className="mt-0.5 text-sm text-gray-500">
+                <h2 className="text-foreground text-lg font-semibold">Recent Feedback</h2>
+                <p className="text-card-FOREGROUND0 mt-0.5 text-sm">
                   {dashboard.feedbacks?.length || 0} feedback entries
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Last 30 days</span>
+                <span className="text-muted-FOREGROUND text-xs">Last 30 days</span>
                 <FiTrendingUp className="h-4 w-4 text-emerald-500" />
               </div>
             </div>
@@ -384,11 +384,11 @@ export default function EditorDashboard() {
             {dashboard.feedbacks?.length === 0 ? (
               // Empty state
               <div className="flex flex-col items-center justify-center p-12 text-center">
-                <div className="mb-4 rounded-full bg-gray-100 p-4">
-                  <FiMessageSquare className="h-8 w-8 text-gray-400" />
+                <div className="bg-muted mb-4 rounded-full p-4">
+                  <FiMessageSquare className="text-muted-FOREGROUND h-8 w-8" />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700">No feedback yet</h3>
-                <p className="mt-1 max-w-sm text-sm text-gray-500">
+                <h3 className="text-foreground text-lg font-medium">No feedback yet</h3>
+                <p className="text-card-FOREGROUND0 mt-1 max-w-sm text-sm">
                   Feedback from users will appear here once they start reviewing your published
                   articles.
                 </p>
@@ -398,14 +398,14 @@ export default function EditorDashboard() {
               dashboard.feedbacks.map((feedback, index) => (
                 <div
                   key={feedback.id}
-                  className={`px-6 py-4 transition hover:bg-gray-50/50 ${
-                    index !== dashboard.feedbacks.length - 1 ? 'border-b border-gray-100' : ''
+                  className={`hover:bg-background/50 px-6 py-4 transition ${
+                    index !== dashboard.feedbacks.length - 1 ? 'border-border border-b' : ''
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     {/* User avatar */}
                     <div className="flex-shrink-0">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-semibold text-white">
+                      <div className="text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 text-sm font-semibold">
                         {getInitials(feedback.user?.name)}
                       </div>
                     </div>
@@ -414,18 +414,18 @@ export default function EditorDashboard() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-800">
+                          <p className="text-foreground font-medium">
                             {feedback.user?.name || 'Anonymous User'}
                           </p>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-muted-FOREGROUND text-xs">•</span>
+                          <span className="text-card-FOREGROUND0 text-xs">
                             {getTimeAgo(feedback.createdAt)}
                           </span>
                         </div>
                         {/* Rating stars */}
                         <div className="flex items-center gap-1">
                           <div className="flex">{renderStars(feedback.rating)}</div>
-                          <span className="ml-1 text-xs text-gray-500">
+                          <span className="text-card-FOREGROUND0 ml-1 text-xs">
                             {feedback.rating.toFixed(1)}
                           </span>
                         </div>
@@ -433,7 +433,7 @@ export default function EditorDashboard() {
 
                       {/* Comment */}
                       {feedback.comment && (
-                        <p className="mt-1.5 line-clamp-2 text-sm text-gray-600">
+                        <p className="text-muted-FOREGROUND mt-1.5 line-clamp-2 text-sm">
                           {feedback.comment}
                         </p>
                       )}
@@ -442,7 +442,7 @@ export default function EditorDashboard() {
                       {feedback.article && (
                         <button
                           onClick={() => router.push(`/editor/articles/${feedback.article?.id}`)}
-                          className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 transition hover:text-blue-700"
+                          className="text-primary hover:text-primary mt-2 inline-flex items-center gap-1 text-xs font-medium transition"
                         >
                           <span>View article</span>
                           <FiArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
@@ -457,10 +457,10 @@ export default function EditorDashboard() {
 
           {/* Footer with view all link */}
           {dashboard.feedbacks && dashboard.feedbacks.length > 0 && (
-            <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-3">
+            <div className="bg-background/50 border-border border-t px-6 py-3">
               <button
                 onClick={() => router.push('/editor/feedback')}
-                className="flex w-full items-center justify-center gap-2 text-sm font-medium text-blue-600 transition hover:text-blue-700"
+                className="text-primary hover:text-primary flex w-full items-center justify-center gap-2 text-sm font-medium transition"
               >
                 <span>View all feedback</span>
                 <FiArrowRight className="h-4 w-4" />

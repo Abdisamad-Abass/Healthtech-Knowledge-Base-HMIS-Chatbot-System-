@@ -383,8 +383,15 @@
 }
 
 @layer utilities {
+  /* Success */
   .text-success {
     color: var(--success);
+  }
+  .bg-success {
+    background-color: var(--success);
+  }
+  .border-success {
+    border-color: var(--success);
   }
   .bg-success-bg {
     background-color: var(--success-bg);
@@ -393,8 +400,15 @@
     border-color: var(--success-border);
   }
 
+  /* Warning */
   .text-warning {
     color: var(--warning);
+  }
+  .bg-warning {
+    background-color: var(--warning);
+  }
+  .border-warning {
+    border-color: var(--warning);
   }
   .bg-warning-bg {
     background-color: var(--warning-bg);
@@ -403,8 +417,15 @@
     border-color: var(--warning-border);
   }
 
+  /* Danger */
   .text-danger {
     color: var(--danger);
+  }
+  .bg-danger {
+    background-color: var(--danger);
+  }
+  .border-danger {
+    border-color: var(--danger);
   }
   .bg-danger-bg {
     background-color: var(--danger-bg);
@@ -412,20 +433,16 @@
   .border-danger-border {
     border-color: var(--danger-border);
   }
-  .text-status-rejected {
-    color: var(--status-rejected);
-  }
 
-  .bg-status-rejected-bg {
-    background-color: var(--status-rejected-bg);
-  }
-
-  .border-status-rejected-border {
-    border-color: var(--status-rejected-border);
-  }
-
+  /* Info */
   .text-info {
     color: var(--info);
+  }
+  .bg-info {
+    background-color: var(--info);
+  }
+  .border-info {
+    border-color: var(--info);
   }
   .bg-info-bg {
     background-color: var(--info-bg);
@@ -433,6 +450,25 @@
   .border-info-border {
     border-color: var(--info-border);
   }
+
+  /* Status */
+  .text-status-rejected {
+    color: var(--status-rejected);
+  }
+  .bg-status-rejected {
+    background-color: var(--status-rejected);
+  }
+  .border-status-rejected {
+    border-color: var(--status-rejected);
+  }
+  .bg-status-rejected-bg {
+    background-color: var(--status-rejected-bg);
+  }
+  .border-status-rejected-border {
+    border-color: var(--status-rejected-border);
+  }
+
+  /* Soft surfaces */
   .bg-muted-soft {
     background-color: color-mix(in srgb, var(--muted) 55%, transparent);
   }
@@ -443,6 +479,10 @@
 
   .bg-warning-soft {
     background-color: color-mix(in srgb, var(--warning-bg) 80%, transparent);
+  }
+
+  .bg-success-soft {
+    background-color: color-mix(in srgb, var(--success-bg) 80%, transparent);
   }
 }
 

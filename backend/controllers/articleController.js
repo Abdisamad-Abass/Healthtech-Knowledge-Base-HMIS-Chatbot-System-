@@ -286,6 +286,13 @@ exports.getAll = async (req, res) => {
       where,
     });
 
+    // Highest rated should exclude unrated articles
+    if (sortBy === "avgRating") {
+      where.avgRating = {
+        gt: 0,
+      };
+    }
+
     // Articles
     const articles = await prisma.article.findMany({
       where,
@@ -414,23 +421,31 @@ exports.getById = async (req, res) => {
 
     // related articles
     const relatedArticles = await prisma.article.findMany({
-      where: {
-        categoryId: article.categoryId,
-        NOT: {
-          id: article.id,
-        },
-      },
+      where:
+        req.user.role === "VIEWER"
+          ? {
+              status: "PUBLISHED",
+              categoryId: article.categoryId,
+              id: { not: article.id },
+            }
+          : {
+              categoryId: article.categoryId,
+              id: { not: article.id },
+            },
 
       select: {
         id: true,
         title: true,
+        slug: true,
         createdAt: true,
+        publishedAt: true,
         views: true,
+        status: true,
       },
 
       take: 5,
       orderBy: {
-        createdAt: "desc",
+        publishedAt: "desc",
       },
     });
 
@@ -1630,12 +1645,14 @@ exports.getBySlug = async (req, res) => {
       });
     }
 
+    // VIEWER: only published articles
     if (req.user.role === "VIEWER" && article.status !== "PUBLISHED") {
       return res.status(403).json({
         message: "You are not allowed to view this article.",
       });
     }
 
+    // EDITOR: can only view own unpublished articles
     if (
       req.user.role === "EDITOR" &&
       article.status !== "PUBLISHED" &&
@@ -1646,17 +1663,58 @@ exports.getBySlug = async (req, res) => {
       });
     }
 
-    // Count view only when the viewer is NOT the article owner
+    // Count view only when viewer is not the author
     if (article.authorId !== req.user.id) {
-      await prisma.$executeRaw`
-    UPDATE "Article"
-    SET "views" = "views" + 1
-    WHERE "id" = ${article.id}
-  `;
+      await prisma.article.update({
+        where: { id: article.id },
+        data: {
+          views: {
+            increment: 1,
+          },
+        },
+      });
     }
 
-    return res.json(article);
+    // Related articles
+    const relatedArticles = await prisma.article.findMany({
+      where:
+        req.user.role === "VIEWER"
+          ? {
+              status: "PUBLISHED",
+              categoryId: article.categoryId,
+              id: { not: article.id },
+            }
+          : {
+              categoryId: article.categoryId,
+              id: { not: article.id },
+            },
+
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        createdAt: true,
+        publishedAt: true,
+        views: true,
+        status: true,
+      },
+
+      orderBy: {
+        publishedAt: "desc",
+      },
+
+      take: 5,
+    });
+
+    return res.json({
+      ...article,
+      avgRating: article.avgRating,
+      reviewCount: article.reviewCount,
+      relatedArticles,
+    });
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       message: "Error loading article",
       error: error.message,

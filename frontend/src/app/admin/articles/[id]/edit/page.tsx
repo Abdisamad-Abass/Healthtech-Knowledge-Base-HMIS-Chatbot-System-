@@ -340,16 +340,16 @@ export default function EditArticlePage() {
   if (error && !article) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
-          <AlertCircle className="mx-auto mb-4 text-red-600" size={42} />
+        <div className="bg-danger-BG border-danger-BORDER rounded-2xl border p-8 text-center">
+          <AlertCircle className="text-status-REJECTED mx-auto mb-4" size={42} />
 
-          <h2 className="text-xl font-bold text-red-800">Unable to Load Article</h2>
+          <h2 className="text-status-DELETED text-xl font-bold">Unable to Load Article</h2>
 
-          <p className="mt-2 text-red-700">{error}</p>
+          <p className="text-status-REJECTED mt-2">{error}</p>
 
           <Link
             href="/admin/articles"
-            className="mt-6 inline-flex rounded-xl bg-red-600 px-5 py-3 font-medium text-white transition hover:bg-red-700"
+            className="text-primary-foreground bg-status-REJECTED hover:bg-status-REJECTED mt-6 inline-flex rounded-xl px-5 py-3 font-medium transition"
           >
             Back to Articles
           </Link>
@@ -367,13 +367,13 @@ export default function EditArticlePage() {
         <div className="rounded-3xl border border-amber-200 bg-amber-50 p-10 text-center shadow-sm">
           <AlertCircle className="mx-auto mb-5 text-amber-600" size={50} />
 
-          <h1 className="text-2xl font-bold text-gray-900">Editing Not Allowed</h1>
+          <h1 className="text-foreground text-2xl font-bold">Editing Not Allowed</h1>
 
-          <p className="mx-auto mt-3 max-w-xl text-gray-600">
+          <p className="text-muted-FOREGROUND mx-auto mt-3 max-w-xl">
             You do not have permission to edit this article.
           </p>
 
-          <div className="mx-auto mt-6 max-w-md rounded-xl bg-white p-4 text-left text-sm">
+          <div className="bg-card mx-auto mt-6 max-w-md rounded-xl p-4 text-left text-sm">
             <p>
               <strong>Article owner:</strong> {article.author.name}
             </p>
@@ -389,7 +389,7 @@ export default function EditArticlePage() {
 
           <Link
             href={`/admin/articles/${article.id}`}
-            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
+            className="text-primary-foreground bg-primary hover:bg-primary mt-7 inline-flex items-center gap-2 rounded-xl px-6 py-3 font-medium transition"
           >
             View Article
           </Link>
@@ -467,7 +467,7 @@ export default function EditArticlePage() {
 
         {/* Alerts */}
         {error && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-700">
+          <div className="bg-danger-BG text-status-REJECTED border-danger-BORDER mb-6 flex items-center gap-3 rounded-xl border px-5 py-4">
             <AlertCircle size={20} />
 
             <span>{error}</span>
@@ -475,7 +475,7 @@ export default function EditArticlePage() {
         )}
 
         {success && (
-          <div className="mb-6 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-700">
+          <div className="bg-success-BG bg-success-BG text-status-PUBLISHED mb-6 flex items-center gap-3 rounded-xl border px-5 py-4">
             <CheckCircle2 size={20} />
 
             <span>{success}</span>
@@ -536,7 +536,7 @@ export default function EditArticlePage() {
                         <Redo2 size={18} />
                       </button>
 
-                      <div className="mx-1 h-6 w-px bg-gray-300" />
+                      <div className="bg-accent mx-1 h-6 w-px" />
 
                       <button
                         type="button"
@@ -574,7 +574,7 @@ export default function EditArticlePage() {
                         <Underline size={18} />
                       </button>
 
-                      <div className="mx-1 h-6 w-px bg-gray-300" />
+                      <div className="bg-accent mx-1 h-6 w-px" />
 
                       <button
                         type="button"
@@ -600,7 +600,7 @@ export default function EditArticlePage() {
                         <Heading2 size={18} />
                       </button>
 
-                      <div className="mx-1 h-6 w-px bg-gray-300" />
+                      <div className="bg-accent mx-1 h-6 w-px" />
 
                       <button
                         type="button"
@@ -638,7 +638,7 @@ export default function EditArticlePage() {
                         <Quote size={18} />
                       </button>
 
-                      <div className="mx-1 h-6 w-px bg-gray-300" />
+                      <div className="bg-accent mx-1 h-6 w-px" />
 
                       <button
                         type="button"
@@ -664,7 +664,7 @@ export default function EditArticlePage() {
                         <AlignRight size={18} />
                       </button>
 
-                      <div className="mx-1 h-6 w-px bg-gray-300" />
+                      <div className="bg-accent mx-1 h-6 w-px" />
 
                       <button
                         type="button"

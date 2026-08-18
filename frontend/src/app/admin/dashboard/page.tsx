@@ -370,10 +370,10 @@ export default function AdminDashboard() {
     return 'Just now';
   };
   const roleStyles: Record<string, string> = {
-    ADMIN: 'bg-red-100 text-red-700',
-    EDITOR: 'bg-green-100 text-green-700',
+    ADMIN: 'bg-danger-BG text-status-REJECTED',
+    EDITOR: 'bg-success-BG text-status-PUBLISHED',
     VIEWER: 'bg-purple-100 text-purple-700',
-    SYSTEM: 'bg-gray-100 text-gray-700',
+    SYSTEM: 'bg-muted text-foreground',
   };
 
   const cards = [
@@ -395,10 +395,10 @@ export default function AdminDashboard() {
         summary && summary.totalChats > 0
           ? `${((summary.answered / summary.totalChats) * 100).toFixed(1)}%`
           : '0%',
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      rateBg: 'bg-green-100',
-      rateColor: 'text-green-700',
+      iconBg: 'bg-success-BG',
+      iconColor: 'text-status-PUBLISHED',
+      rateBg: 'bg-success-BG',
+      rateColor: 'text-status-PUBLISHED',
     },
     {
       title: 'Unanswered',
@@ -408,10 +408,10 @@ export default function AdminDashboard() {
         summary && summary.totalChats > 0
           ? `${((summary.unanswered / summary.totalChats) * 100).toFixed(1)}%`
           : '0%',
-      iconBg: 'bg-red-100',
-      iconColor: 'text-red-600',
-      rateBg: 'bg-red-100',
-      rateColor: 'text-red-700',
+      iconBg: 'bg-danger-BG',
+      iconColor: 'text-status-REJECTED',
+      rateBg: 'bg-danger-BG',
+      rateColor: 'text-status-REJECTED',
     },
     {
       title: 'Avg Response Time',
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
 
                   <div className="mt-1">
                     <p className="text-lg font-bold tracking-tight">{card.number}</p>
-                    <p className="text-xs font-medium text-gray-500">{card.title}</p>
+                    <p className="text-card-FOREGROUND0 text-xs font-medium">{card.title}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
             <CardHeader className="flex flex-row justify-between">
               <div className="flex flex-col">
                 <CardTitle className="text-base">Feedback Trends</CardTitle>
-                <CardDescription className="text-xs text-gray-500">
+                <CardDescription className="text-card-FOREGROUND0 text-xs">
                   Star ratings distribution over the last 30 days
                 </CardDescription>
               </div>
@@ -556,7 +556,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="h-0.5 w-4 border-t-2 border-dashed border-slate-400"></span>
+                  <span className="border-border h-0.5 w-4 border-t-2 border-dashed"></span>
                   <span className="text-muted-foreground text-xs">Rating 1–3</span>
                 </div>
               </div>
@@ -626,7 +626,7 @@ export default function AdminDashboard() {
                                 </span>
                               </div>
 
-                              <div className="my-2 border-t border-slate-200" />
+                              <div className="border-border my-2 border-t" />
 
                               <div className="flex justify-between gap-8">
                                 <span className="text-muted-foreground">Average rating</span>
@@ -700,7 +700,7 @@ export default function AdminDashboard() {
             {/* */}
             <CardContent className="mt-6 h-[300px] overflow-y-auto pr-2">
               {activityLoading ? (
-                <p className="text-sm text-gray-500">Loading...</p>
+                <p className="text-card-FOREGROUND0 text-sm">Loading...</p>
               ) : (
                 activities.map((activity, index) => {
                   const item = formatActivity(activity);
@@ -716,11 +716,11 @@ export default function AdminDashboard() {
                         <Timer className="text-primary h-5 w-5" />
                       </div>
                       {/* Activity card */}
-                      <div className="border-border flex-1 rounded-xl border bg-white p-4 shadow-sm">
-                        <p className="text-sm font-medium text-gray-800">{item.title}</p>
+                      <div className="border-border bg-card flex-1 rounded-xl border p-4 shadow-sm">
+                        <p className="text-foreground text-sm font-medium">{item.title}</p>
                         {/* Time */}
                         <div className="mt-3 flex items-center gap-2">
-                          <span className="text-xs text-gray-500">
+                          <span className="text-card-FOREGROUND0 text-xs">
                             {timeAgo(activity.createdAt)}
                           </span>
                           {/* State */}
@@ -730,7 +730,7 @@ export default function AdminDashboard() {
                           {/* Role */}
                           <span
                             className={`rounded-full px-2 py-1 text-xs font-medium ${
-                              roleStyles[item.role] ?? 'bg-gray-100 text-gray-700'
+                              roleStyles[item.role] ?? 'bg-muted text-foreground'
                             }`}
                           >
                             {item.role}
@@ -764,10 +764,10 @@ export default function AdminDashboard() {
 
                   if (t.includes('llama') || t.includes('rag')) {
                     return {
-                      track: 'bg-blue-50',
+                      track: 'bg-primary-soft',
                       bar: 'from-[#155EEF] to-[#4C8DFF]',
-                      pill: 'bg-blue-100 text-blue-700',
-                      accent: 'text-blue-700',
+                      pill: 'bg-accent text-primary',
+                      accent: 'text-primary',
                     };
                   }
 
@@ -793,12 +793,12 @@ export default function AdminDashboard() {
                 return (
                   <div
                     key={model.title}
-                    className="mb-1 rounded-2xl border border-slate-100 bg-gradient-to-br from-white to-slate-50 p-4"
+                    className="border-border mb-1 rounded-2xl border bg-gradient-to-br from-white to-slate-50 p-4"
                   >
                     <div className="mb-3 flex items-center justify-between">
                       <div>
-                        <h2 className="text-sm font-semibold text-slate-900">{model.title}</h2>
-                        <p className="text-xs text-slate-500">{model.count} requests</p>
+                        <h2 className="text-foreground text-sm font-semibold">{model.title}</h2>
+                        <p className="text-card-FOREGROUND0 text-xs">{model.count} requests</p>
                       </div>
 
                       <span
@@ -816,14 +816,14 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="mt-3 flex justify-between text-xs">
-                      <span className="text-slate-500">
+                      <span className="text-card-FOREGROUND0">
                         Confidence:
                         <span className={`ml-1 font-semibold ${style.accent}`}>
                           {model.confidence.toFixed(0)}%
                         </span>
                       </span>
 
-                      <span className="text-slate-500">
+                      <span className="text-card-FOREGROUND0">
                         {(model.responseTime / 1000).toFixed(2)} s
                       </span>
                     </div>
@@ -841,9 +841,9 @@ export default function AdminDashboard() {
             </div>
             <div className="h-[300px] overflow-y-auto pr-2">
               {searchLoading ? (
-                <p className="text-sm text-gray-500">Loading...</p>
+                <p className="text-card-FOREGROUND0 text-sm">Loading...</p>
               ) : searchTrend.length === 0 ? (
-                <p className="text-sm text-gray-500">No search analytics available.</p>
+                <p className="text-card-FOREGROUND0 text-sm">No search analytics available.</p>
               ) : (
                 <div className="space-y-3">
                   {searchTrend.map((trend) => (
@@ -859,14 +859,14 @@ export default function AdminDashboard() {
                         <div>
                           <h2 className="text-sm font-medium">{trend.title}</h2>
 
-                          <p className="text-xs text-gray-500">Search keyword</p>
+                          <p className="text-card-FOREGROUND0 text-xs">Search keyword</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <trend.icon size={18} className="text-green-500" />
+                        <trend.icon size={18} className="text-success0" />
 
-                        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                        <span className="bg-success-BG text-status-PUBLISHED rounded-full px-3 py-1 text-sm font-semibold">
                           {trend.queries}
                         </span>
                       </div>
@@ -887,9 +887,9 @@ export default function AdminDashboard() {
           {/* cards */}
           <div className="mt-2 grid grid-cols-3 gap-2">
             {topArticlesLoading ? (
-              <p className="text-gray-500">Loading...</p>
+              <p className="text-card-FOREGROUND0">Loading...</p>
             ) : topArticles.length === 0 ? (
-              <p className="text-gray-500">No published articles found.</p>
+              <p className="text-card-FOREGROUND0">No published articles found.</p>
             ) : (
               topArticles.map((article, index) => {
                 const performance = (article.avgRating / 5) * 100;
@@ -899,9 +899,9 @@ export default function AdminDashboard() {
                     return {
                       border: 'border-blue-100',
                       bg: 'from-blue-50 via-white to-slate-50',
-                      pill: 'bg-blue-100 text-blue-700',
+                      pill: 'bg-accent text-primary',
                       gradient: 'from-[#155EEF] via-[#4C8DFF] to-[#0F9B8E]',
-                      accent: 'text-blue-700',
+                      accent: 'text-primary',
                     };
                   }
 
@@ -932,7 +932,7 @@ export default function AdminDashboard() {
                     className={`rounded-2xl border ${style.border} bg-gradient-to-br ${style.bg} p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <h2 className="line-clamp-2 text-sm font-semibold text-slate-900">
+                      <h2 className="text-foreground line-clamp-2 text-sm font-semibold">
                         {article.title}
                       </h2>
 
@@ -943,28 +943,28 @@ export default function AdminDashboard() {
 
                     <div className="mt-5 grid grid-cols-3 gap-4">
                       <div>
-                        <p className="text-xs text-slate-500">Views</p>
+                        <p className="text-card-FOREGROUND0 text-xs">Views</p>
                         <p className={`text-lg font-bold ${style.accent}`}>
                           {article.views.toLocaleString()}
                         </p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-slate-500">Reviews</p>
-                        <p className="text-lg font-bold text-slate-900">{article.reviewCount}</p>
+                        <p className="text-card-FOREGROUND0 text-xs">Reviews</p>
+                        <p className="text-foreground text-lg font-bold">{article.reviewCount}</p>
                       </div>
 
                       <div>
-                        <p className="text-xs text-slate-500">Rating</p>
-                        <p className="text-lg font-bold text-slate-900">
+                        <p className="text-card-FOREGROUND0 text-xs">Rating</p>
+                        <p className="text-foreground text-lg font-bold">
                           {Number(article.avgRating).toFixed(1)}/5
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-2 rounded-xl border border-white/60 bg-white/70 p-4 backdrop-blur-sm">
+                    <div className="bg-card/70 border-border/60 mt-2 rounded-xl border p-4 backdrop-blur-sm">
                       <div className="mb-3 flex items-center justify-between">
-                        <span className="text-xs font-medium text-slate-600">
+                        <span className="text-muted-FOREGROUND text-xs font-medium">
                           Performance score
                         </span>
 
@@ -973,14 +973,14 @@ export default function AdminDashboard() {
                         </span>
                       </div>
 
-                      <div className="h-2.5 overflow-hidden rounded-full bg-slate-200">
+                      <div className="bg-secondary h-2.5 overflow-hidden rounded-full">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${style.gradient}`}
                           style={{ width: `${performance}%` }}
                         />
                       </div>
 
-                      <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                      <div className="text-card-FOREGROUND0 mt-3 flex items-center justify-between text-xs">
                         <span>Reader satisfaction</span>
                         <span className="font-medium">{article.reviewCount} reviews</span>
                       </div>

@@ -206,7 +206,7 @@ export default function UnansweredQuestionsPage() {
     if (similarity === null) {
       return {
         label: 'No match found',
-        className: 'bg-gray-100 text-gray-600',
+        className: 'bg-muted text-muted-FOREGROUND',
       };
     }
 
@@ -215,7 +215,7 @@ export default function UnansweredQuestionsPage() {
     if (percentage >= 75) {
       return {
         label: `${percentage.toFixed(1)}% match`,
-        className: 'bg-green-100 text-green-700',
+        className: 'bg-success-BG text-status-PUBLISHED',
       };
     }
 
@@ -228,7 +228,7 @@ export default function UnansweredQuestionsPage() {
 
     return {
       label: `${percentage.toFixed(1)}% match`,
-      className: 'bg-red-100 text-red-700',
+      className: 'bg-danger-BG text-status-REJECTED',
     };
   };
 
@@ -268,14 +268,14 @@ export default function UnansweredQuestionsPage() {
             label="Unresolved"
             value={unresolvedCount}
             icon={<AlertCircle size={18} />}
-            iconClass="bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+            iconClass="bg-danger-BG text-status-REJECTED dark:bg-status-DELETED/30 dark:text-status-REJECTED"
           />
 
           <StatCard
             label="Resolved"
             value={resolvedCount}
             icon={<CheckCircle2 size={18} />}
-            iconClass="bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+            iconClass="bg-success-BG text-status-PUBLISHED dark:bg-green-900/30 dark:text-vital"
           />
 
           <StatCard
@@ -335,7 +335,7 @@ export default function UnansweredQuestionsPage() {
               <Button
                 variant="ghost"
                 onClick={clearFilters}
-                className="h-11 rounded-xl text-red-600"
+                className="text-status-REJECTED h-11 rounded-xl"
               >
                 <X className="mr-2 h-4 w-4" />
                 Clear
@@ -405,13 +405,13 @@ export default function UnansweredQuestionsPage() {
             <EmptyState
               title="No unanswered questions"
               description="Great! The chatbot has successfully handled all recorded questions."
-              icon={<CheckCircle2 className="h-12 w-12 text-green-500" />}
+              icon={<CheckCircle2 className="text-success0 h-12 w-12" />}
             />
           ) : filteredQuestions.length === 0 ? (
             <EmptyState
               title="No matching questions"
               description="Try adjusting your search or filters to find other unanswered questions."
-              icon={<Search className="h-12 w-12 text-gray-400" />}
+              icon={<Search className="text-muted-FOREGROUND h-12 w-12" />}
               action={
                 <Button onClick={clearFilters} className="rounded-xl">
                   Clear filters
@@ -421,14 +421,14 @@ export default function UnansweredQuestionsPage() {
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
+                <p className="text-card-FOREGROUND0 text-sm">
                   Showing
-                  <span className="font-semibold text-gray-800">{filteredQuestions.length}</span>
+                  <span className="text-foreground font-semibold">{filteredQuestions.length}</span>
                   question
                   {filteredQuestions.length !== 1 ? 's' : ''}
                 </p>
 
-                <div className="hidden items-center gap-2 text-xs text-gray-400 sm:flex">
+                <div className="text-muted-FOREGROUND hidden items-center gap-2 text-xs sm:flex">
                   <Filter size={14} />
                   Filters applied in real time
                 </div>
@@ -586,18 +586,18 @@ function LoadingState() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((item) => (
-        <div key={item} className="animate-pulse rounded-2xl border border-gray-200 bg-white p-5">
+        <div key={item} className="bg-card border-border animate-pulse rounded-2xl border p-5">
           <div className="flex gap-4">
-            <div className="h-11 w-11 rounded-xl bg-gray-200" />
+            <div className="bg-secondary h-11 w-11 rounded-xl" />
             <div className="flex-1">
-              <div className="h-5 w-3/4 rounded bg-gray-200" />
+              <div className="bg-secondary h-5 w-3/4 rounded" />
 
               <div className="mt-4 flex gap-2">
-                <div className="h-6 w-24 rounded-full bg-gray-200" />
-                <div className="h-6 w-28 rounded-full bg-gray-200" />
+                <div className="bg-secondary h-6 w-24 rounded-full" />
+                <div className="bg-secondary h-6 w-28 rounded-full" />
               </div>
 
-              <div className="mt-4 h-4 w-1/2 rounded bg-gray-200" />
+              <div className="bg-secondary mt-4 h-4 w-1/2 rounded" />
             </div>
           </div>
         </div>

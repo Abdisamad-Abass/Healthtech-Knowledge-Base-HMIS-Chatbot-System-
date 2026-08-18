@@ -52,16 +52,18 @@ export default function Editor() {
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-800">Knowledge Base Editor</h1>
+          <h1 className="text-foreground text-4xl font-extrabold">Knowledge Base Editor</h1>
 
-          <p className="mt-2 text-gray-500">Create and manage healthcare knowledge articles</p>
+          <p className="text-card-FOREGROUND0 mt-2">
+            Create and manage healthcare knowledge articles
+          </p>
         </div>
 
-        <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-xl">
+        <div className="bg-card border-border rounded-3xl border p-8 shadow-xl">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Title */}
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">Article Title</label>
+              <label className="text-foreground text-sm font-semibold">Article Title</label>
 
               <input
                 className="mt-2 w-full rounded-xl border p-4 transition outline-none focus:ring-2 focus:ring-blue-500"
@@ -73,7 +75,7 @@ export default function Editor() {
 
             {/* Type */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">Article Type</label>
+              <label className="text-foreground text-sm font-semibold">Article Type</label>
 
               <select
                 className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
@@ -91,7 +93,7 @@ export default function Editor() {
 
             {/* Category */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">Category</label>
+              <label className="text-foreground text-sm font-semibold">Category</label>
 
               <select
                 className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
@@ -110,7 +112,7 @@ export default function Editor() {
 
             {/* Product */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">Product Module</label>
+              <label className="text-foreground text-sm font-semibold">Product Module</label>
 
               <input
                 className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
@@ -122,7 +124,7 @@ export default function Editor() {
 
             {/* Tags */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">Tags</label>
+              <label className="text-foreground text-sm font-semibold">Tags</label>
 
               <input
                 className="mt-2 w-full rounded-xl border p-4 focus:ring-2 focus:ring-blue-500"
@@ -134,7 +136,7 @@ export default function Editor() {
 
             {/* Content */}
             <div className="md:col-span-2">
-              <label className="text-sm font-semibold text-gray-700">Article Content</label>
+              <label className="text-foreground text-sm font-semibold">Article Content</label>
 
               <textarea
                 className="mt-2 h-80 w-full resize-none rounded-xl border p-5 outline-none focus:ring-2 focus:ring-blue-500"
@@ -158,7 +160,7 @@ Steps:
 
           <button
             onClick={save}
-            className="mt-8 w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-lg font-bold text-white shadow-lg transition hover:from-blue-700 hover:to-indigo-700 active:scale-95"
+            className="text-primary-foreground mt-8 w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-4 text-lg font-bold shadow-lg transition hover:from-blue-700 hover:to-indigo-700 active:scale-95"
           >
             🚀 Create Knowledge Article
           </button>

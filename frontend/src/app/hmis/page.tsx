@@ -4,55 +4,57 @@ export default function HMIS() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 p-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 rounded-3xl bg-white p-8 shadow-xl">
-          <h1 className="text-4xl font-bold text-gray-800">HMIS Dashboard</h1>
+        <div className="bg-card mb-8 rounded-3xl p-8 shadow-xl">
+          <h1 className="text-foreground text-4xl font-bold">HMIS Dashboard</h1>
 
-          <p className="mt-3 text-gray-500">Healthcare Management Information System overview</p>
+          <p className="text-card-FOREGROUND0 mt-3">
+            Healthcare Management Information System overview
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition hover:shadow-2xl">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 text-3xl">
+          <div className="bg-card border-border rounded-3xl border p-8 shadow-lg transition hover:shadow-2xl">
+            <div className="bg-accent flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">
               👨‍⚕️
             </div>
 
-            <h2 className="mt-5 text-2xl font-bold text-gray-800">Patients</h2>
+            <h2 className="text-foreground mt-5 text-2xl font-bold">Patients</h2>
 
-            <p className="mt-2 text-gray-500">Manage patient records and information</p>
+            <p className="text-card-FOREGROUND0 mt-2">Manage patient records and information</p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition hover:shadow-2xl">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 text-3xl">
+          <div className="bg-card border-border rounded-3xl border p-8 shadow-lg transition hover:shadow-2xl">
+            <div className="bg-success-BG flex h-16 w-16 items-center justify-center rounded-2xl text-3xl">
               🧪
             </div>
 
-            <h2 className="mt-5 text-2xl font-bold text-gray-800">Laboratory</h2>
+            <h2 className="text-foreground mt-5 text-2xl font-bold">Laboratory</h2>
 
-            <p className="mt-2 text-gray-500">View laboratory tests and results</p>
+            <p className="text-card-FOREGROUND0 mt-2">View laboratory tests and results</p>
           </div>
 
-          <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-lg transition hover:shadow-2xl">
+          <div className="bg-card border-border rounded-3xl border p-8 shadow-lg transition hover:shadow-2xl">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 text-3xl">
               💊
             </div>
 
-            <h2 className="mt-5 text-2xl font-bold text-gray-800">Pharmacy</h2>
+            <h2 className="text-foreground mt-5 text-2xl font-bold">Pharmacy</h2>
 
-            <p className="mt-2 text-gray-500">Manage medicines and prescriptions</p>
+            <p className="text-card-FOREGROUND0 mt-2">Manage medicines and prescriptions</p>
           </div>
         </div>
 
-        <div className="mt-10 rounded-3xl bg-white p-8 shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-800">HMIS Services</h2>
+        <div className="bg-card mt-10 rounded-3xl p-8 shadow-lg">
+          <h2 className="text-foreground text-2xl font-bold">HMIS Services</h2>
 
           <div className="mt-6 grid gap-4 md:grid-cols-4">
-            <div className="rounded-xl bg-blue-50 p-5 text-gray-800">Registration</div>
+            <div className="bg-primary-soft text-foreground rounded-xl p-5">Registration</div>
 
-            <div className="rounded-xl bg-green-50 p-5 text-gray-800">Records</div>
+            <div className="bg-success-BG text-foreground rounded-xl p-5">Records</div>
 
-            <div className="rounded-xl bg-purple-50 p-5 text-gray-800">Reports</div>
+            <div className="text-foreground rounded-xl bg-purple-50 p-5">Reports</div>
 
-            <div className="rounded-xl bg-orange-50 p-5 text-gray-800">Analytics</div>
+            <div className="text-foreground rounded-xl bg-orange-50 p-5">Analytics</div>
           </div>
         </div>
       </div>

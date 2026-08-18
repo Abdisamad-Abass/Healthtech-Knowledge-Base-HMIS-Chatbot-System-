@@ -60,12 +60,12 @@ export default function EditorProfilePage() {
     return (
       <main className="min-h-screen">
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-            <p className="text-sm text-red-600">{error || 'Profile not found'}</p>
+          <div className="bg-danger-BG border-danger-BORDER rounded-2xl border p-6 text-center">
+            <p className="text-status-REJECTED text-sm">{error || 'Profile not found'}</p>
 
             <button
               onClick={fetchProfile}
-              className="mt-4 rounded-xl bg-[#0F52BA] px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              className="text-primary-foreground hover:bg-primary mt-4 rounded-xl bg-[#0F52BA] px-4 py-2 text-sm font-medium transition"
             >
               Try Again
             </button>

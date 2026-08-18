@@ -353,7 +353,7 @@ export default function Articles() {
 
           <button
             onClick={() => setShowFilters((prev) => !prev)}
-            className="flex items-center gap-2 rounded-lg bg-blue-100 px-3 py-2 transition hover:bg-blue-200"
+            className="bg-accent hover:bg-accent flex items-center gap-2 rounded-lg px-3 py-2 transition"
           >
             <SlidersHorizontal size={18} />
 
@@ -366,7 +366,7 @@ export default function Articles() {
             <div className="flex justify-between">
               {/* Search */}
               <div className="flex flex-col gap-2 lg:col-span-2">
-                <Label htmlFor="search" className="text-sm font-medium text-slate-700">
+                <Label htmlFor="search" className="text-muted-FOREGROUND text-sm font-medium">
                   Search title or slug
                 </Label>
                 <Input
@@ -381,7 +381,7 @@ export default function Articles() {
 
               {/* Status */}
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-slate-700">Status</Label>
+                <Label className="text-muted-FOREGROUND text-sm font-medium">Status</Label>
                 <Select
                   value={selectedStatus || null}
                   onValueChange={(value) => setSelectedStatus(value ?? '')}
@@ -404,7 +404,7 @@ export default function Articles() {
 
               {/* Categories */}
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-slate-700">Category</Label>
+                <Label className="text-muted-FOREGROUND text-sm font-medium">Category</Label>
                 <Select
                   value={selectedCategory || null}
                   onValueChange={(value) => setSelectedCategory(value ?? '')}
@@ -427,7 +427,7 @@ export default function Articles() {
 
               {/* Types */}
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-slate-700">Article type</Label>
+                <Label className="text-muted-FOREGROUND text-sm font-medium">Article type</Label>
                 <Select
                   value={selectedType || null}
                   onValueChange={(value) => setSelectedType(value ?? '')}
@@ -459,7 +459,7 @@ export default function Articles() {
         )}
 
         {/* table */}
-        <section className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <section className="bg-card border-border mt-6 overflow-hidden rounded-xl border shadow-sm">
           <div className="overflow-x-auto">
             <Table className="w-full border-collapse">
               <TableCaption className="sr-only">Knowledge base articles</TableCaption>
@@ -469,7 +469,7 @@ export default function Articles() {
                   {articleDetails.map((column) => (
                     <TableHead
                       key={column.key}
-                      className="border-b border-gray-200 px-6 py-4 text-left text-xs font-semibold text-gray-700"
+                      className="text-foreground border-border border-b px-6 py-4 text-left text-xs font-semibold"
                     >
                       {column.label}
                     </TableHead>

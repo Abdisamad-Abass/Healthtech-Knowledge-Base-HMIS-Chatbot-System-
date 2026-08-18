@@ -222,7 +222,8 @@ export default function AdminSearchPage() {
       title: 'Zero results',
       value: analytics.zeroResults,
       icon: CircleX,
-      color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+      color:
+        'bg-danger-BG text-status-REJECTED dark:bg-status-DELETED/30 dark:text-status-REJECTED',
     },
   ];
   // search format
@@ -510,7 +511,7 @@ export default function AdminSearchPage() {
                 {/* footer */}
                 <div className="border-border mt-5 flex items-center justify-between border-t pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold text-white">
+                    <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full font-semibold">
                       {getInitials(item.author?.name)}
                     </div>
 
