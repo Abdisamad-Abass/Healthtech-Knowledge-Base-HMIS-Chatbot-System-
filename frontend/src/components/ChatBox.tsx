@@ -93,9 +93,9 @@ export default function ChatBox() {
   const send = async (e?: React.FormEvent) => {
     e?.preventDefault();
 
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
-    const userMessage = input;
+    const userMessage = input.trim();
     setInput('');
 
     setMessages((prev) => [
@@ -116,14 +116,15 @@ export default function ChatBox() {
     try {
       const res = await api.post('/chat', {
         question: userMessage,
-        sessionId,
+        sessionId: sessionId || undefined,
       });
-      if (!sessionId) {
-        const newId = res.data.sessionId;
 
-        setSessionId(newId);
+      if (!res.data?.answer) {
+        throw new Error('The chatbot returned an empty response.');
+      }
 
-        await getSessions();
+      if (!sessionId && res.data.sessionId) {
+        setSessionId(res.data.sessionId);
       }
 
       setMessages((prev) => [
@@ -143,8 +144,29 @@ export default function ChatBox() {
           feedback: null,
         },
       ]);
-      // Refresh sidebar
+
       await getSessions();
+    } catch (error: any) {
+      console.error('Chat request failed:', error);
+
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        'Sorry, the HMIS Assistant could not process your question. Please try again.';
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: 'bot',
+          text: errorMessage,
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          }),
+          confidence: 'LOW',
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
