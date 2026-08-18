@@ -664,8 +664,8 @@ export default function ChatBox() {
 
                 {/* Bot Message + Time */}
                 <div className="flex flex-col">
-                  <div className="border-border bg-card max-w-3xl rounded-3xl rounded-tl-none border p-5 shadow-sm">
-                    <div className="prose prose-slate prose-headings:mt-0 prose-headings:mb-3 prose-p:my-3 prose-li:my-1 prose-strong:text-foreground prose-code:text-primary max-w-none">
+                  <div className="border-border bg-card max-w-3xl rounded-3xl rounded-tl-none border px-5 py-3 shadow-sm">
+                    <div className="prose prose-slate prose-headings:mt-0 prose-headings:mb-3 prose-headings:text-sm prose-p:my-3 prose-li:my-1 prose-strong:text-foreground prose-code:text-primary max-w-none">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                     </div>
 

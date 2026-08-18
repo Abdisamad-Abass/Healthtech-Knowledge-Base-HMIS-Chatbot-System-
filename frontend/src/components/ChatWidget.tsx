@@ -114,15 +114,25 @@ export default function ChatWidget() {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Chat request failed:', {
+        message: error?.message,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        request: error?.request,
+      });
+
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        'The HMIS assistant could not process your question right now.';
 
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: 'bot',
-          text: 'Sorry, I could not connect to the HMIS assistant. Please try again.',
+          text: backendMessage,
           time: new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
@@ -203,7 +213,7 @@ export default function ChatWidget() {
                   </div>
 
                   <div className="border-border bg-card max-w-[88%] rounded-2xl rounded-tl-none border px-4 py-3 shadow-sm">
-                    <div className="prose prose-h1:text-[14.5px] prose-h1:font-medium prose-h1:text-foreground prose-h1:mb-2 prose-h1:mt-0 prose-h2:text-[14.5px] prose-h2:font-medium prose-h2:text-foreground prose-h2:mb-2 prose-h2:mt-0 prose-h3:text-[14.5px] prose-h3:font-medium prose-h3:text-foreground prose-h3:mb-2 prose-h3:mt-0 prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:font-medium prose-strong:text-foreground prose-code:text-primary prose-pre:bg-card prose-pre:text-slate-100 text-foreground max-w-none text-[14.5px] leading-6">
+                    <div className="prose prose-h1:text-xs prose-h1:font-medium prose-h1:text-foreground prose-h1:mb-2 prose-h1:mt-0 + prose-h2:text-xs prose-h2:font-medium prose-h2:text-foreground prose-h2:mb-2 prose-h2:mt-0 + prose-h3:text-xs prose-h3:font-medium prose-h3:text-foreground prose-h3:mb-2 prose-h3:mt-0 prose-headings:text-sm prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:font-medium prose-strong:text-foreground prose-code:text-primary prose-pre:bg-card prose-pre:text-slate-100 text-foreground max-w-none text-[14.5px] leading-6">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
                     </div>
 

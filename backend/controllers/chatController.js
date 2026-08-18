@@ -524,7 +524,7 @@ exports.chat = async (req, res) => {
 
       responseTime: Date.now() - totalStart,
 
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-120b",
     });
     // ===============================
     // SAVE CHAT MESSAGE
@@ -600,21 +600,22 @@ exports.chat = async (req, res) => {
       sessionId: session.id,
     });
   } catch (error) {
-  console.error("=================================");
-  console.error("CHAT SERVICE ERROR");
-  console.error("Message:", error.message);
-  console.error("Code:", error.code);
-  console.error("Name:", error.name);
-  console.error("Stack:", error.stack);
-  console.error("=================================");
+    console.error("=================================");
+    console.error("CHAT SERVICE ERROR");
+    console.error("Message:", error.message);
+    console.error("Code:", error.code);
+    console.error("Name:", error.name);
+    console.error("Stack:", error.stack);
+    console.error("=================================");
 
-  return res.status(500).json({
-    message: "Chat service error",
-    error:
-      process.env.NODE_ENV === "production"
-        ? "The chatbot could not process your request."
-        : error.message,
-  });
+    return res.status(500).json({
+      message: "Chat service error",
+      error:
+        process.env.NODE_ENV === "production"
+          ? "The chatbot could not process your request."
+          : error.message,
+    });
+  }
 };
 
 // CHAT HISTORY

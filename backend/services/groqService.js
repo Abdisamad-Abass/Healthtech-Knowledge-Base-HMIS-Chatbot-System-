@@ -12,7 +12,7 @@ exports.askGroq = async ({ context, question }) => {
   const start = Date.now();
 
   const completion = await client.chat.completions.create({
-    model: "llama-3.1-8b-instant",
+    model: "openai/gpt-oss-120b",
 
     temperature: 0,
 
