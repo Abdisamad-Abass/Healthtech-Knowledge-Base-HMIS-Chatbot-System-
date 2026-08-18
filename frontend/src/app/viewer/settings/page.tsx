@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -30,6 +31,8 @@ type UserData = {
 
 export default function ViewerSettingsPage() {
   const router = useRouter();
+
+  const { theme, setTheme } = useTheme();
 
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -146,28 +149,58 @@ export default function ViewerSettingsPage() {
               </CardHeader>
 
               <CardContent className="space-y-3">
-                <div className="border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors">
+                <div
+                  onClick={() => setTheme('light')}
+                  className={`border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                    theme === 'light' ? 'border-primary bg-primary/5' : ''
+                  }`}
+                >
                   <div className="flex items-center gap-3">
                     <Sun className="text-primary h-5 w-5" />
                     <p className="font-medium">Light mode</p>
                   </div>
-                  <Monitor className="text-muted-foreground h-4 w-4" />
+
+                  <div
+                    className={`h-4 w-4 rounded-full border-2 ${
+                      theme === 'light' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                    }`}
+                  />
                 </div>
 
-                <div className="border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors">
+                <div
+                  onClick={() => setTheme('dark')}
+                  className={`border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                    theme === 'dark' ? 'border-primary bg-primary/5' : ''
+                  }`}
+                >
                   <div className="flex items-center gap-3">
                     <Moon className="text-primary h-5 w-5" />
                     <p className="font-medium">Dark mode</p>
                   </div>
-                  <Monitor className="text-muted-foreground h-4 w-4" />
+
+                  <div
+                    className={`h-4 w-4 rounded-full border-2 ${
+                      theme === 'dark' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                    }`}
+                  />
                 </div>
 
-                <div className="border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors">
+                <div
+                  onClick={() => setTheme('system')}
+                  className={`border-border bg-background hover:border-primary/40 flex cursor-pointer items-center justify-between rounded-xl border p-4 transition-colors ${
+                    theme === 'system' ? 'border-primary bg-primary/5' : ''
+                  }`}
+                >
                   <div className="flex items-center gap-3">
                     <Monitor className="text-primary h-5 w-5" />
                     <p className="font-medium">System preference</p>
                   </div>
-                  <Monitor className="text-muted-foreground h-4 w-4" />
+
+                  <div
+                    className={`h-4 w-4 rounded-full border-2 ${
+                      theme === 'system' ? 'border-primary bg-primary' : 'border-muted-foreground'
+                    }`}
+                  />
                 </div>
               </CardContent>
             </Card>

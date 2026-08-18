@@ -144,43 +144,52 @@ export default function ViewerArticlesPage() {
   };
 
   return (
-    <div className="bg-background min-h-screen">
-      {' '}
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 md:px-6 lg:px-8">
-        {' '}
+    <div className="bg-background min-h-screen w-full overflow-x-hidden">
+      <div className="mx-auto w-full max-w-7xl space-y-6 px-3 py-5 sm:space-y-7 sm:px-5 sm:py-6 md:space-y-8 md:px-6 md:py-8 lg:px-8">
+        {/* Page Header */}
         <div className="space-y-2">
-          {' '}
-          <h1 className="text-foreground text-3xl font-bold">Knowledge base articles </h1>{' '}
-          <p className="text-muted-foreground">
-            Browse published HMIS guides, SOPs, troubleshooting articles, and documentation.{' '}
-          </p>{' '}
+          <h1 className="text-foreground text-2xl leading-tight font-bold sm:text-3xl">
+            Knowledge base articles
+          </h1>
+
+          <p className="text-muted-foreground max-w-3xl text-sm leading-6 sm:text-base">
+            Browse published HMIS guides, SOPs, troubleshooting articles, and documentation.
+          </p>
         </div>
-        <Card>
-          <CardContent className="p-5">
-            <div className="grid gap-4 lg:grid-cols-5">
-              <div className="relative lg:col-span-2">
+
+        {/* Search and Filters */}
+        <Card className="w-full">
+          <CardContent className="p-3 sm:p-5">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+              {/* Search */}
+              <div className="relative min-w-0 lg:col-span-2">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                   placeholder="Search articles..."
-                  className="pl-11"
+                  className="h-11 w-full pl-11"
                 />
               </div>
-              <div>
-                <Label className="mb-2">Categories</Label>
+
+              {/* Categories */}
+              <div className="min-w-0">
+                <Label className="mb-2 block">Categories</Label>
+
                 <Select
                   value={category}
                   onValueChange={(value) => {
                     if (value === null) {
                       return;
                     }
+
                     setCategory(value);
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 w-full">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
 
@@ -196,19 +205,22 @@ export default function ViewerArticlesPage() {
                 </Select>
               </div>
 
-              <div>
-                <Label className="mb-2"> Types</Label>
+              {/* Types */}
+              <div className="min-w-0">
+                <Label className="mb-2 block">Types</Label>
+
                 <Select
                   value={type}
                   onValueChange={(value) => {
                     if (value === null) {
                       return;
                     }
+
                     setType(value);
                     setPage(1);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 w-full">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
 
@@ -224,13 +236,17 @@ export default function ViewerArticlesPage() {
                 </Select>
               </div>
 
-              <Button onClick={handleSearch}>
-                <Filter className="mr-2 h-4 w-4" />
-                Search
-              </Button>
+              {/* Search Button */}
+              <div className="flex items-end">
+                <Button onClick={handleSearch} className="h-11 w-full">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Search
+                </Button>
+              </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+            {/* Results + Sort */}
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-muted-foreground text-sm">
                 {pagination ? `${pagination.total} articles found` : 'Loading articles...'}
               </div>
@@ -241,84 +257,110 @@ export default function ViewerArticlesPage() {
                   if (value === null) {
                     return;
                   }
+
                   setSortBy(value);
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="h-10 w-full sm:w-48">
                   <SelectValue />
                 </SelectTrigger>
+
                 <SelectContent>
                   <SelectItem value="updatedAt">Recently updated</SelectItem>
+
                   <SelectItem value="publishedAt">Recently published</SelectItem>
+
                   <SelectItem value="views">Most viewed</SelectItem>
+
                   <SelectItem value="avgRating">Highest rated</SelectItem>
+
                   <SelectItem value="title">Title (A–Z)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
+
+        {/* Loading */}
         {loading ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index}>
-                <CardContent className="p-6">
+              <Card key={index} className="min-w-0">
+                <CardContent className="p-4 sm:p-6">
                   <div className="bg-muted h-5 w-3/4 animate-pulse rounded" />
+
                   <div className="bg-muted mt-4 h-4 w-full animate-pulse rounded" />
+
                   <div className="bg-muted mt-2 h-4 w-5/6 animate-pulse rounded" />
+
                   <div className="bg-muted mt-6 h-4 w-1/2 animate-pulse rounded" />
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : articles.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <FileText className="text-muted-foreground mb-4 h-12 w-12" />
-              <h3 className="text-foreground text-xl font-semibold">No articles found</h3>
-              <p className="text-muted-foreground mt-2 max-w-md">
+          /* Empty State */
+          <Card className="w-full">
+            <CardContent className="flex flex-col items-center justify-center px-4 py-12 text-center sm:py-16">
+              <FileText className="text-muted-foreground mb-4 h-10 w-10 sm:h-12 sm:w-12" />
+
+              <h3 className="text-foreground text-lg font-semibold sm:text-xl">
+                No articles found
+              </h3>
+
+              <p className="text-muted-foreground mt-2 max-w-md text-sm leading-6">
                 Try adjusting your search terms or filters to find the documentation you're looking
                 for.
               </p>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          /* Articles */
+          <div className="grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
             {articles.map((article) => (
               <Card
                 key={article.id}
-                className="group cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
+                className="group min-w-0 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg"
                 onClick={() => openArticle(article.id)}
               >
-                <CardContent className="flex h-full flex-col p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-xs font-medium">
+                <CardContent className="flex h-full min-w-0 flex-col p-4 sm:p-5 md:p-6">
+                  {/* Category + Type */}
+                  <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+                    <span className="bg-primary/10 text-primary max-w-[65%] truncate rounded-full px-3 py-1 text-xs font-medium">
                       {article.category?.name || 'General'}
                     </span>
 
-                    <span className="text-muted-foreground text-xs">{article.type}</span>
+                    <span className="text-muted-foreground max-w-[35%] truncate text-right text-xs">
+                      {article.type}
+                    </span>
                   </div>
 
-                  <h3 className="text-foreground line-clamp-2 text-xl font-semibold">
+                  {/* Title */}
+                  <h3 className="text-foreground line-clamp-2 text-lg font-semibold break-words sm:text-xl">
                     {article.title}
                   </h3>
 
-                  <p className="text-muted-foreground mt-3 line-clamp-3 flex-1 text-sm">
+                  {/* Description */}
+                  <p className="text-muted-foreground mt-3 line-clamp-3 flex-1 text-sm leading-6 break-words">
                     {stripHtml(article.content)}
                   </p>
 
-                  <div className="text-muted-foreground mt-6 flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-4">
+                  {/* Metadata */}
+                  <div className="text-muted-foreground mt-5 flex flex-col gap-3 text-sm sm:mt-6">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                      {/* Views */}
                       <div className="flex items-center gap-1">
-                        <Eye className="h-4 w-4" />
-                        {article.views}
+                        <Eye className="h-4 w-4 shrink-0" />
+                        <span>{article.views}</span>
                       </div>
 
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      {/* Rating */}
+                      <div className="flex min-w-0 items-center gap-1">
+                        <Star className="h-4 w-4 shrink-0 fill-yellow-400 text-yellow-400" />
+
                         {article.reviewCount > 0 ? (
-                          <span>
+                          <span className="truncate">
                             {article.avgRating.toFixed(1)} ({article.reviewCount})
                           </span>
                         ) : (
@@ -327,13 +369,18 @@ export default function ViewerArticlesPage() {
                       </div>
                     </div>
 
+                    {/* Date */}
                     <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {formatDate(article.publishedAt || article.createdAt)}
+                      <Clock className="h-4 w-4 shrink-0" />
+
+                      <span className="truncate">
+                        {formatDate(article.publishedAt || article.createdAt)}
+                      </span>
                     </div>
                   </div>
 
-                  <Button className="mt-6 w-full">
+                  {/* Read Button */}
+                  <Button className="mt-5 h-11 w-full sm:mt-6">
                     Read article
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
@@ -342,25 +389,32 @@ export default function ViewerArticlesPage() {
             ))}
           </div>
         )}
+
+        {/* Pagination */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t pt-6">
+          <div className="flex flex-col gap-4 border-t pt-5 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
+            {/* Previous */}
             <Button
               variant="outline"
               disabled={!pagination.hasPrevious}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="w-full sm:w-auto"
             >
               <ChevronLeft className="mr-2 h-4 w-4" />
               Previous
             </Button>
 
-            <div className="text-muted-foreground text-sm">
+            {/* Page */}
+            <div className="text-muted-foreground order-first text-center text-sm sm:order-none">
               Page {pagination.page} of {pagination.totalPages}
             </div>
 
+            {/* Next */}
             <Button
               variant="outline"
               disabled={!pagination.hasNext}
               onClick={() => setPage((p) => p + 1)}
+              className="w-full sm:w-auto"
             >
               Next
               <ChevronRight className="ml-2 h-4 w-4" />
