@@ -6,18 +6,28 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { assets } from '@/assets/assets';
 
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle2, CircleAlert, Info, X, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
+type MessageType = 'success' | 'error' | 'info';
+
+interface SystemMessage {
+  type: MessageType;
+  title: string;
+  message: string;
+}
+
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const [systemMessage, setSystemMessage] = useState<SystemMessage | null>(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -32,10 +42,46 @@ export default function Login() {
       ...prev,
       [name]: value,
     }));
+    // Clear old message when user starts correcting the form
+    if (systemMessage) {
+      setSystemMessage(null);
+    }
+  };
+
+  const switchMode = (loginMode: boolean) => {
+    setIsLogin(loginMode);
+    setSystemMessage(null);
+    setShowPassword(false);
+  };
+
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (err && typeof err === 'object' && 'response' in err) {
+      const response = (err as any).response;
+
+      return response?.data?.message || response?.data?.error || fallback;
+    }
+
+    if (err instanceof Error) {
+      return err.message;
+    }
+
+    return fallback;
   };
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setSystemMessage(null);
+
+    if (!form.email || !form.password) {
+      setSystemMessage({
+        type: 'error',
+        title: 'Missing information',
+        message: 'Please enter your email address and password to continue.',
+      });
+
+      return;
+    }
 
     try {
       setLoading(true);
@@ -53,35 +99,58 @@ export default function Login() {
 
       localStorage.setItem('tokenExpiry', (Date.now() + 8 * 60 * 60 * 1000).toString());
 
-      switch (user.role) {
-        case 'ADMIN':
-          router.push('/admin/dashboard');
-          break;
+      setSystemMessage({
+        type: 'success',
+        title: 'Login successful',
+        message: `Welcome back, ${user.name}. Redirecting you to your dashboard...`,
+      });
+      // Small delay so the success message can be seen
+      setTimeout(() => {
+        switch (user.role) {
+          case 'ADMIN':
+            router.push('/admin/dashboard');
+            break;
 
-        case 'EDITOR':
-          router.push('/editor/dashboard');
-          break;
+          case 'EDITOR':
+            router.push('/editor/dashboard');
+            break;
 
-        case 'VIEWER':
-          router.push('/viewer');
-          break;
+          case 'VIEWER':
+            router.push('/viewer');
+            break;
 
-        default:
-          router.push('/login');
-      }
+          default:
+            router.push('/login');
+        }
+      }, 700);
     } catch (err: unknown) {
-      const message =
-        err && typeof err === 'object' && 'response' in err
-          ? (err as any).response?.data?.message
-          : null;
-
-      alert(message || 'Login failed');
+      setSystemMessage({
+        type: 'error',
+        title: 'Unable to sign in',
+        message: getErrorMessage(
+          err,
+          'We could not sign you in. Please check your credentials and try again.',
+        ),
+      });
     } finally {
       setLoading(false);
     }
   };
+
   const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setSystemMessage(null);
+
+    if (!form.name || !form.email || !form.password) {
+      setSystemMessage({
+        type: 'error',
+        title: 'Missing information',
+        message: 'Please complete all required fields before creating your account.',
+      });
+
+      return;
+    }
 
     try {
       setLoading(true);
@@ -92,7 +161,12 @@ export default function Login() {
         password: form.password,
       });
 
-      alert('Account created successfully.');
+      setSystemMessage({
+        type: 'success',
+        title: 'Account created successfully',
+        message:
+          'Your account has been created. You can now sign in securely using your email and password.',
+      });
 
       setIsLogin(true);
 
@@ -102,14 +176,45 @@ export default function Login() {
         password: '',
       });
     } catch (err: unknown) {
-      const message =
-        err && typeof err === 'object' && 'response' in err
-          ? (err as any).response?.data?.message
-          : null;
-
-      alert(message || 'Registration failed');
+      setSystemMessage({
+        type: 'error',
+        title: 'Registration failed',
+        message: getErrorMessage(err, 'We could not create your account. Please try again.'),
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const renderMessageIcon = () => {
+    if (!systemMessage) return null;
+
+    if (systemMessage.type === 'success') {
+      return <CheckCircle2 className="text-success h-5 w-5 shrink-0" strokeWidth={2.2} />;
+    }
+
+    if (systemMessage.type === 'error') {
+      return <CircleAlert className="text-danger h-5 w-5 shrink-0" strokeWidth={2.2} />;
+    }
+
+    return <Info className="text-info h-5 w-5 shrink-0" strokeWidth={2.2} />;
+  };
+
+  const messageClass = () => {
+    if (!systemMessage) return '';
+
+    switch (systemMessage.type) {
+      case 'success':
+        return 'alert-success';
+
+      case 'error':
+        return 'alert-danger';
+
+      case 'info':
+        return 'alert-info';
+
+      default:
+        return '';
     }
   };
 
@@ -179,6 +284,35 @@ export default function Login() {
               </p>
             </header>
 
+            {/* SYSTEM MESSAGE */}
+            {systemMessage && (
+              <div
+                role={systemMessage.type === 'error' ? 'alert' : 'status'}
+                aria-live="polite"
+                className={`animate-scale-in mt-5 flex items-start gap-3 rounded-xl border p-4 shadow-sm ${messageClass()}`}
+              >
+                {/* Icon */}
+                <div className="mt-0.5">{renderMessageIcon()}</div>
+
+                {/* Message */}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">{systemMessage.title}</p>
+
+                  <p className="mt-1 text-sm leading-5 opacity-90">{systemMessage.message}</p>
+                </div>
+
+                {/* Close */}
+                <button
+                  type="button"
+                  onClick={() => setSystemMessage(null)}
+                  className="shrink-0 rounded-md p-1 opacity-60 transition hover:bg-current/10 hover:opacity-100"
+                  aria-label="Dismiss message"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={isLogin ? handleLogin : handleRegister} className="mt-3 space-y-5">
               {/* Tabs */}
@@ -186,7 +320,7 @@ export default function Login() {
                 {/* Login Tab */}
                 <button
                   type="button"
-                  onClick={() => setIsLogin(true)}
+                  onClick={() => switchMode(true)}
                   className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
                     isLogin
                       ? 'bg-primary text-primary-foreground shadow-sm'
@@ -199,7 +333,7 @@ export default function Login() {
                 {/* Register Tab */}
                 <button
                   type="button"
-                  onClick={() => setIsLogin(false)}
+                  onClick={() => switchMode(false)}
                   className={`flex items-center justify-center rounded-lg py-2.5 text-sm font-semibold transition-all duration-200 ${
                     !isLogin
                       ? 'bg-primary text-primary-foreground shadow-sm'
@@ -223,7 +357,7 @@ export default function Login() {
                     value={form.name}
                     onChange={handleChange}
                     placeholder="Enter your full name"
-                    className=""
+                    disabled={loading}
                   />
                 </div>
               )}
@@ -238,8 +372,8 @@ export default function Login() {
                   value={form.email}
                   onChange={handleChange}
                   type="email"
-                  className=""
                   placeholder="Enter your Email"
+                  disabled={loading}
                 />
               </div>
 
@@ -258,11 +392,13 @@ export default function Login() {
                     type={showPassword ? 'text' : 'password'}
                     className="pr-12"
                     placeholder="Enter Password"
+                    disabled={loading}
                   />
 
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
+                    disabled={loading}
                     className="text-card-FOREGROUND0 absolute top-1/2 right-3 -translate-y-1/2 transition hover:text-[#003C90]"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -279,6 +415,13 @@ export default function Login() {
                 {loading ? 'Please wait...' : isLogin ? 'Sign in to dashboard' : 'Create account'}
               </Button>
             </form>
+
+            {/* Security footer */}
+            <div className="border-border text-muted-foreground mt-6 flex items-center justify-center gap-2 border-t pt-5 text-xs">
+              <div className="bg-success h-1.5 w-1.5 rounded-full" />
+
+              <span>Secure connection • Your information is protected</span>
+            </div>
           </div>
         </article>
       </section>
